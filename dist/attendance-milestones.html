@@ -297,6 +297,13 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   html,body{width:auto!important;min-width:0!important;overflow:visible!important}
 }
 
+.tbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.awaybtn{border:1px dashed var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.awaybtn.on{border-style:solid;border-color:#b9c0cc;background:#eef0f3;color:var(--ink);font-weight:600}
+.tcard.away{background:#f7f8fa}
+.tcard.away .say{opacity:.6}
+.sbar .a{background:#b9c0cc}
+
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
 #login.on{display:block}
@@ -520,7 +527,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 
 <script>
 const RAW = [[1,"Year 7","7B",46.5,31.5],[2,"Year 7","7C",54,42.0],[3,"Year 7","7C",54,25.0],[4,"Year 7","7A",54,31.0],[5,"Year 7","7C",54,36.0],[6,"Year 7","7B",54,21.5],[7,"Year 8","8D",28.5,13.5],[8,"Year 8","8A",54,26.0],[9,"Year 8","REFLECT",54,32.5],[10,"Year 8","8D",54,26.0],[11,"Year 8","8B",54,42.0],[12,"Year 8","8B",54,32.5],[13,"Year 8","8D",54,38.5],[14,"Year 8","8C",54,33.5],[15,"Year 8","8D",54,34.5],[16,"Year 8","8B",46.5,35.0],[17,"Year 8","8C",54,35.5],[18,"Year 8","8A",54,23.5],[19,"Year 8","8D",54,32.5],[20,"Year 8","8B",36,21.5],[21,"Year 8","8A",54,32.0],[22,"Year 8","8B",54,32.5],[23,"Year 9","9D",54,35.5],[24,"Year 9","9A",54,36.5],[25,"Year 9","9A",54,40.5],[26,"Year 9","9B",54,24.0],[27,"Year 9","9A",54,40.5],[28,"Year 9","9B",54,30.0],[29,"Year 9","9D",54,25.5],[30,"Year 9","9D",54,25.5],[31,"Year 9","9A",24,12.0],[32,"Year 9","9A",54,30.0],[33,"Year 9","9C",54,29.0],[34,"Year 9","9D",54,21.0],[35,"Year 9","9C",54,33.0],[36,"Year 9","9B",54,25.5],[37,"Year 9","REFLECT",54,40.5],[38,"Year 9","9D",54,22.0],[39,"Year 9","9D",54,30.5],[40,"Year 10","10B",54,38.0],[41,"Year 10","10C",54,29.5],[42,"Year 10","10B",54,17.5],[43,"Year 10","10D",54,42.0],[44,"Year 10","10B",54,36.5],[45,"Year 10","10C",54,37.0],[46,"Year 10","REFLECT",54,20.5],[47,"Year 10","10D",54,33.5],[48,"Year 10","REFLECT",54,40.5],[49,"Year 10","10C",54,42.0],[50,"Year 10","10B",54,41.5],[51,"Year 10","10B",54,33.5],[52,"Year 10","REFLECT",54,35.5],[53,"Year 10","10C",54,34.5],[54,"Year 10","10D",54,41.5],[55,"Year 11","11B",54,34.5],[56,"Year 11","11F",54,26.5],[57,"Year 11","11B",54,31.0],[58,"Year 11","REFLECT",54,32.5],[59,"Year 11","11B",54,41.0],[60,"Year 11","11A",54,35.5],[61,"Year 11","11A",54,29.0],[62,"Year 11","11F",54,28.0],[63,"Year 11","11D",54,34.0],[64,"Year 11","11A",42.5,31.5],[65,"Year 11","11B",54,33.5],[66,"Year 11","11F",54,39.0],[67,"Year 11","11D",46.5,29.0],[68,"Year 11","11B",54,27.5],[69,"Year 11","11A",54,33.0],[70,"Year 11","11B",54,40.5],[71,"Year 11","11D",54,35.5],[72,"Year 11","11F",54,16.5],[73,"Year 11","11E",54,36.5],[74,"Year 11","11F",54,26.0],[75,"Year 11","11A",54,41.5],[76,"Year 11","11E",54,33.5],[77,"Year 11","11E",54,34.5],[78,"Year 11","11B",54,34.5],[79,"Year 11","11E",54,42.0],[80,"Year 11","11D",54,22.0],[81,"Year 11","11F",54,33.0],[82,"Year 11","11D",54,37.0],[83,"Year 11","11D",54,40.5],[84,"Year 11","11A",30,18.0],[85,"Year 11","11A",54,33.0],[86,"Year 11","11D",54,36.0],[87,"Year 11","11F",54,28.5],[88,"Year 11","11C",54,42.0],[89,"Year 12","12T1",42.5,25.5],[90,"Year 12","12T2",42.5,19.0],[91,"Year 12","12T2",54,23.5],[92,"Year 12","12T2",54,30.5],[93,"Year 12","12T1",54,38.0],[94,"Year 12","12T2",54,31.0],[95,"Year 12","12T1",54,34.0],[96,"Year 12","12T2",54,31.0],[97,"Year 12","12T2",54,24.5],[98,"Year 12","12T2",54,29.5],[99,"Year 12","12T2",54,30.0],[100,"Year 12","REFLECT",54,32.5],[101,"Year 12","12T1",54,40.5],[102,"Year 13","13T2",54,36.0],[103,"Year 13","13T1",54,31.5],[104,"Year 13","13T2",54,29.0],[105,"Year 13","13T1",54,34.0],[106,"Year 13","13T2",30,15.5],[107,"Year 13","13T2",54,32.5],[108,"Year 13","13T1",54,27.0],[109,"Year 13","13T1",54,37.0],[110,"Year 13","13T1",54,42.0],[111,"Year 13","13T1",54,17.5],[112,"Year 13","13T1",54,30.0],[113,"Year 13","13T2",54,34.5],[114,"Year 13","13T2",54,33.5],[115,"Year 13","13T2",54,42.0],[116,"Year 13","13T2",54,20.0],[117,"Year 13","13T2",54,27.5],[118,"Year 9","9A",0,0],[119,"Year 11","11B",0,0]];
-const KEY = 'rainfordAttendanceMilestones.v3';
+const KEY = 'rainfordAttendanceMilestones.v4';
 const MILESTONES = [10,20,30,40,50,60,70,80,90,95];
 const TITLES = ['Mr','Mrs','Miss','Ms','Mr','Mrs'];
 const TSUR = ['Ashworth','Bennett','Carroll','Dunne','Ellison','Fletcher','Gallagher','Hesketh','Ince','Jennings','Kenyon','Lyon','Marsh','Naylor','Owens','Pickavance','Quinn','Rainey','Sefton','Tomlinson','Upton','Vose','Webster','Yates','Barton','Crompton','Dixon','Eccles','Forshaw','Gaskell'];
@@ -704,6 +711,11 @@ function seed(){
     if(f.target!=null && f.need>0 && f.reachable && f.need <= state.settings.tutorDays)
       state.log.push({sid:id, type:'tutor', m:f.target, date:sdays[i%3], staff:tutorName(s.tutor)});
   });
+  ids.forEach((id,i) => {
+    const s = cur[id]; if(!isFormGroup(s.tutor) || i%5!==3) return;
+    const f = info(s);
+    if(f.tutorWin && !f.tutorChat) state.log.push({sid:id, type:'tutoraway', m:f.target, date:weekStart(today), staff:tutorName(s.tutor)});
+  });
   state.log.sort((a,b)=>a.date<b.date?-1:1);
   save();
 }
@@ -728,6 +740,7 @@ function prevUpload(){ // the upload about two school weeks back, for "change si
   const cutoff = schoolDaysBack(dataDate(), 10).pop();
   return u.filter(x => x.date <= cutoff).pop() || u[0];
 }
+function weekStart(s){ const d = parseISO(s); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return iso(d); }
 function uploadOn(date){ const u = state.uploads; return u.filter(x => x.date <= date).pop() || u[0]; }
 function streakDays(id){
   const u = state.uploads; let days = 0, capped = false;
@@ -771,7 +784,7 @@ function info(s){
   const reachable = need!=null && need <= L;
   const byDate = (need!=null && need>0 && reachable) ? nthSchoolDayAfter(dataDate(), Math.ceil(need)) : null;
   const rewardDue = !!(activeGoal && p >= activeGoal.m - 1e-9 && !rewarded.has(activeGoal.m));
-  const contacts = logs.filter(l=>l.type!=='tutor');
+  const contacts = logs.filter(l=>l.type!=='tutor' && l.type!=='tutoraway');
   const last = contacts.length ? contacts[contacts.length-1] : null;
   const sinceContact = last ? schoolDaysBetween(last.date, TODAY >= dataDate() ? TODAY : dataDate()) : null;
   const ever = contacts.length>0;
@@ -782,6 +795,7 @@ function info(s){
     : (nextNeed!=null && nextNeed>0 && nextNeed <= +state.settings.tNear && nextNeed <= L);
   const tutorWin = target!=null && need>0 && reachable && need <= +state.settings.tutorDays && !rewardDue;
   const tutorChat = target!=null ? logs.filter(l=>l.type==='tutor' && l.m===target).pop() || null : null;
+  const tutorAway = !tutorChat ? logs.filter(l=>l.type==='tutoraway' && l.date >= weekStart(TODAY)).pop() || null : null;
   const first = state.firstListed[s.id];
   const isNew = !ever && inScope;
   let list = null;
@@ -794,7 +808,7 @@ function info(s){
   const streak = streakDays(s.id);
   const prev = prevUpload() && prevUpload().rows[s.id];
   const change = prev && prev.P>0 && p!=null ? p - prev.A/prev.P*100 : null;
-  return {p, logs, rewarded, activeGoal, nextM, target, need, best, reachable, byDate, rewardDue, last, sinceContact, inScope, first, isNew, list, checkDue, change, atGoal, offTrack, drop, streak, ever, nextNeed, tutorWin, tutorChat,
+  return {p, logs, rewarded, activeGoal, nextM, target, need, best, reachable, byDate, rewardDue, last, sinceContact, inScope, first, isNew, list, checkDue, change, atGoal, offTrack, drop, streak, ever, nextNeed, tutorWin, tutorChat, tutorAway,
     need90: daysNeeded(s.A,s.P,.9), need95: daysNeeded(s.A,s.P,.95), L};
 }
 
@@ -965,7 +979,7 @@ function renderDetail(){
     <details class="plain"><summary>Add a note</summary><textarea id="note" rows="2" placeholder="Saved with your next tap"></textarea></details>
     <details class="plain"><summary>${DAYNAME[dayIdx]}'s timetable</summary><table class="daytt">${tt}</table></details>
     <details class="plain"><summary>History (${f.logs.length})</summary>
-    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%':l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':'<b>Reward given: '+l.m+'%</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
+    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%':l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':'<b>Reward given: '+l.m+'%</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
       <li><span class="d">${state.firstListed[s.id]?nice(state.firstListed[s.id]):''}</span><span class="cellmeta">First on the list</span></li></ul></details>
   `;
 }
@@ -1012,10 +1026,10 @@ function renderMonitor(){
   const met = on.filter(x=>x.f.ever).length;
   const avg = a => a.length ? a.reduce((t,x)=>t+x,0)/a.length : null;
   const reached90 = all.filter(x=>x.f.ever && x.f.p>=90).length;
-  const tWin = all.filter(x=>x.f.tutorWin && isFormGroup(x.s.tutor)), tDone = tWin.filter(x=>x.f.tutorChat).length;
+  const tWin = all.filter(x=>x.f.tutorWin && isFormGroup(x.s.tutor)), tDone = tWin.filter(x=>x.f.tutorChat||x.f.tutorAway).length;
   $('mStats').innerHTML = [
     [on.length,'on the list'],[all.filter(x=>x.f.offTrack).length,'off track'],[overdue.length,'check-ins due or overdue'],[all.filter(x=>x.f.list==='reward').length,'rewards due'],
-    [tWin.length? Math.round(tDone/tWin.length*100)+'%':'–','tutor conversations logged']
+    [tWin.length? Math.round(tDone/tWin.length*100)+'%':'–','tutor list logged (spoken to or not in)']
   ].map(([v,k])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
 
   const years = [...new Set(all.map(x=>x.s.year||'No year'))].sort((a,b)=>yearNum(a)-yearNum(b));
@@ -1059,27 +1073,28 @@ function renderMonitor(){
 function renderTutorMonitor(all){
   const forms = {};
   all.filter(x => isFormGroup(x.s.tutor)).forEach(x => {
-    const g = forms[x.s.tutor] ||= {code:x.s.tutor, year:x.s.year||'No year', win:[], done:[], out:[]};
-    if(x.f.tutorWin){ g.win.push(x); (x.f.tutorChat ? g.done : g.out).push(x); }
+    const g = forms[x.s.tutor] ||= {code:x.s.tutor, year:x.s.year||'No year', win:[], done:[], away:[], out:[]};
+    if(x.f.tutorWin){ g.win.push(x); (x.f.tutorChat ? g.done : x.f.tutorAway ? g.away : g.out).push(x); }
   });
-  const logsBy = code => state.log.filter(l => l.type==='tutor' && (curUpload().rows[l.sid]||{}).tutor===code);
-  let list = Object.values(forms).map(g => { const ls = logsBy(g.code); return {...g, last: ls.length ? ls[ls.length-1].date : null, rate: g.win.length ? g.done.length/g.win.length : null}; });
+  const logsBy = code => state.log.filter(l => (l.type==='tutor'||l.type==='tutoraway') && (curUpload().rows[l.sid]||{}).tutor===code);
+  let list = Object.values(forms).map(g => { const ls = logsBy(g.code); return {...g, last: ls.length ? ls[ls.length-1].date : null, rate: g.win.length ? (g.done.length+g.away.length)/g.win.length : null}; });
   const active = list.filter(g => g.win.length);
-  const full = active.filter(g => g.out.length===0).length, none = active.filter(g => g.done.length===0).length, part = active.length-full-none;
-  const tw = active.reduce((t,g)=>t+g.win.length,0), td = active.reduce((t,g)=>t+g.done.length,0);
-  $('tmHint').innerHTML = `<b>${td} of ${tw}</b> logged. <span style="color:var(--ok)">${full} forms done</span> · <span style="color:var(--warn)">${part} part done</span> · <span style="color:var(--bad)">${none} nothing logged</span>. Tap a form to see who's outstanding.`;
+  const full = active.filter(g => g.out.length===0).length, none = active.filter(g => g.done.length+g.away.length===0).length, part = active.length-full-none;
+  const tw = active.reduce((t,g)=>t+g.win.length,0), td = active.reduce((t,g)=>t+g.done.length,0), ta = active.reduce((t,g)=>t+g.away.length,0);
+  $('tmHint').innerHTML = `<b>${td}</b> spoken to, <b>${ta}</b> not in this week, <b>${tw-td-ta}</b> not logged. <span style="color:var(--ok)">${full} forms done</span> · <span style="color:var(--warn)">${part} part done</span> · <span style="color:var(--bad)">${none} nothing logged</span>. Grey in the bars means not in this week. Tap a form to see who's outstanding.`;
   $('tmStats').innerHTML = '';
   const years = [...new Set(active.map(g=>g.year))].sort((a,b)=>yearNum(a)-yearNum(b));
-  $('tmYears').innerHTML = years.length>1 ? years.map(y => { const gs = active.filter(g=>g.year===y), w = gs.reduce((t,g)=>t+g.win.length,0), d = gs.reduce((t,g)=>t+g.done.length,0);
+  $('tmYears').innerHTML = years.length>1 ? years.map(y => { const gs = active.filter(g=>g.year===y), w = gs.reduce((t,g)=>t+g.win.length,0), d = gs.reduce((t,g)=>t+g.done.length+g.away.length,0);
     return `<div class="yr"><b>${esc(y)}</b><div class="mini"><i style="width:${w?d/w*100:0}%"></i></div>${d} of ${w} logged</div>`; }).join('') : '';
   const f = $('tmFilter').value;
-  let rows = f==='out' ? active.filter(g=>g.out.length) : f==='none' ? active.filter(g=>!g.done.length) : f==='all' ? list : active;
+  let rows = f==='out' ? active.filter(g=>g.out.length) : f==='none' ? active.filter(g=>!g.done.length&&!g.away.length) : f==='all' ? list : active;
   rows.sort((a,b) => (a.rate==null) - (b.rate==null) || (a.rate??0)-(b.rate??0) || b.out.length-a.out.length || yearNum(a.year)-yearNum(b.year) || a.code.localeCompare(b.code));
   $('tmRows').innerHTML = rows.map(g => {
     const n = g.win.length;
-    const bar = n ? `<div class="sbar">${g.done.length?`<i class="s" style="width:${g.done.length/n*100}%">${g.done.length}</i>`:''}${g.out.length?`<i class="o" style="width:${g.out.length/n*100}%">${g.out.length}</i>`:''}</div>` : `<div class="sbar"></div>`;
-    const res = n ? `<span style="color:${g.out.length? (g.done.length?'var(--warn)':'var(--bad)') : 'var(--ok)'}">${g.done.length}/${n}</span>` : `<span class="cellmeta">Nobody</span>`;
-    const names = g.out.length ? 'Not logged: '+g.out.map(x=>esc(x.s.name.split(', ').reverse().join(' '))+' ('+x.f.target+'%, '+fmtDays(x.f.need)+')').join(', ') : n ? '✓ All conversations logged.' : 'No students close to a milestone right now.';
+    const bar = n ? `<div class="sbar">${g.done.length?`<i class="s" style="width:${g.done.length/n*100}%">${g.done.length}</i>`:''}${g.away.length?`<i class="a" style="width:${g.away.length/n*100}%"></i>`:''}${g.out.length?`<i class="o" style="width:${g.out.length/n*100}%">${g.out.length}</i>`:''}</div>` : `<div class="sbar"></div>`;
+    const res = n ? `<span style="color:${g.out.length? (g.done.length+g.away.length?'var(--warn)':'var(--bad)') : 'var(--ok)'}">${g.done.length+g.away.length}/${n}</span>` : `<span class="cellmeta">Nobody</span>`;
+    const nm2 = x => esc(x.s.name.split(', ').reverse().join(' '));
+    const names = (g.out.length ? 'Not logged: '+g.out.map(x=>nm2(x)+' ('+x.f.target+'%, '+fmtDays(x.f.need)+')').join(', ') : n ? '✓ All logged.' : 'No students close to a milestone right now.') + (g.away.length ? '<br>Not in this week: '+g.away.map(nm2).join(', ') : '');
     return `<div class="frow"><div class="who"><b>${esc(g.code)}</b><span>${esc(tutorName(g.code))} · ${esc(g.year)}</span></div>${bar}<div class="res">${res}</div><div class="last">${g.last? 'Last logged '+nice(g.last) : 'Never logged'}</div><div class="names">${names}</div></div>`;
   }).join('') || '<div class="empty">No forms match this filter.</div>';
   const quiet = list.length-active.length;
@@ -1098,7 +1113,8 @@ function printWeekly(){
   const tWin = all.filter(x=>x.f.tutorWin && isFormGroup(x.s.tutor)), tDone = tWin.filter(x=>x.f.tutorChat).length;
   const avg = a => a.length ? a.reduce((t,x)=>t+x,0)/a.length : null;
   const years = [...new Set(all.map(x=>x.s.year||'No year'))].sort((a,b)=>yearNum(a)-yearNum(b));
-  const forms = {}; tWin.forEach(x => { const g = forms[x.s.tutor] ||= {code:x.s.tutor, n:0, d:0}; g.n++; if(x.f.tutorChat) g.d++; });
+  const tAway = tWin.filter(x=>x.f.tutorAway).length;
+  const forms = {}; tWin.forEach(x => { const g = forms[x.s.tutor] ||= {code:x.s.tutor, n:0, d:0}; g.n++; if(x.f.tutorChat||x.f.tutorAway) g.d++; });
   const quiet = Object.values(forms).filter(g=>g.d===0).sort((a,b)=>a.code.localeCompare(b.code));
   const rewards = logs.filter(l=>l.type==='reward');
   const streaks = all.filter(x=>x.f.list && x.f.streak.days>=3).sort((a,b)=>b.f.streak.days-a.f.streak.days).slice(0,8);
@@ -1110,7 +1126,7 @@ function printWeekly(){
     <div class="sub">Rainford High · ${esc(scope)} · week ending ${niceY(TODAY)} · data up to ${niceY(dataDate())} · ${daysLeft()} school days left</div>
     <div class="kpis">
       ${kpi(on.length,'students on the list')}${kpi(all.filter(x=>x.f.list==='new').length,'new, not met yet')}${kpi(off.length,'off track since goal set')}${kpi(all.filter(x=>x.f.list==='check'&&x.f.checkDue).length,'check-ins due or overdue')}
-      ${kpi(c('checkin'),'check-ins this week')}${kpi(c('goal'),'goals set this week')}${kpi(rewards.length,'rewards given this week')}${kpi(tWin.length?Math.round(tDone/tWin.length*100)+'%':'–','tutor conversations logged ('+tDone+' of '+tWin.length+')')}
+      ${kpi(c('checkin'),'check-ins this week')}${kpi(c('goal'),'goals set this week')}${kpi(rewards.length,'rewards given this week')}${kpi(tWin.length?Math.round(tDone/tWin.length*100)+'%':'–','tutor conversations logged ('+tDone+' of '+tWin.length+(tAway?', '+tAway+' not in':'')+')')}
     </div>
     <h2>By year group</h2>
     <table><tr><th>Year</th><th class="n">On list</th><th class="n">Avg attendance</th><th class="n">Change (2 weeks)</th><th class="n">Off track</th><th class="n">Check-ins</th><th class="n">Goals</th><th class="n">Rewards</th><th class="n">Tutor chats</th></tr>
@@ -1281,19 +1297,24 @@ setInterval(() => { if(state.settings.clock==='live' && $('s-lists').classList.c
 /* ---------- tutor view ---------- */
 function renderTutor(){
   const rows = students().map(s => ({s, f:info(s)}));
-  const win = rows.filter(x => x.f.tutorWin).sort((a,b) => (!!a.f.tutorChat - !!b.f.tutorChat) || a.f.need-b.f.need);
+  const st = f => f.tutorChat ? 2 : f.tutorAway ? 1 : 0;
+  const win = rows.filter(x => x.f.tutorWin).sort((a,b) => st(a.f)-st(b.f) || a.f.need-b.f.need);
   const rest = rows.filter(x => !x.f.tutorWin && x.f.list);
   const spoken = win.filter(x => x.f.tutorChat).length;
   $('tTitle').textContent = user.tutor+' · '+user.name;
   const td = +state.settings.tutorDays;
   $('tIntro').textContent = `Close to their next attendance milestone. Have a quick word, then tick them off.`;
-  $('tStats').innerHTML = win.length ? `<b>${spoken} of ${win.length}</b> spoken to` : '';
+  const away = win.filter(x => x.f.tutorAway).length;
+  $('tStats').innerHTML = win.length ? `<b>${spoken} of ${win.length}</b> spoken to${away?` · ${away} not in this week`:''}` : '';
   $('tCards').innerHTML = win.length ? win.map(({s,f}) => {
     const first = s.name.split(', ').reverse()[0];
-    const ch = f.tutorChat, today = ch && ch.date===TODAY;
-    return `<div class="tcard${ch?' done':''}">
+    const ch = f.tutorChat, today = ch && ch.date===TODAY, aw = f.tutorAway;
+    return `<div class="tcard${ch?' done':aw?' away':''}">
       <div><div class="nm">${esc(s.name)}</div><div class="cellmeta">${fmtPct(f.p)} now</div></div>
-      <button class="tick${ch?' on':''}" data-tid="${s.id}"><span class="dot">✓</span>${ch ? (today?'Spoke today':'Spoke '+nice(ch.date)) : 'Spoke to them'}</button>
+      <div class="tbtns">
+        <button class="tick${ch?' on':''}" data-tid="${s.id}"><span class="dot">✓</span>${ch ? (today?'Spoke today':'Spoke '+nice(ch.date)) : 'Spoke to them'}</button>
+        ${ch ? '' : `<button class="awaybtn${aw?' on':''}" data-aid="${s.id}">${aw ? '✓ Not in this week' : 'Not in this week'}</button>`}
+      </div>
       <div class="say">${f.streak.days>=3?esc(first)+' has been in every day for '+f.streak.days+(f.streak.capped?'+':'')+' days. ':''}If ${esc(first)} is in every day until <b>${nice(f.byDate)}</b>, they'll reach <b>${f.target}%</b>. That's ${fmtDays(f.need)}.</div>
     </div>`; }).join('')
     : `<div class="empty">Nobody in ${esc(user.tutor)} is within ${fmtDays(+state.settings.tutorDays)} of a milestone right now.</div>`;
@@ -1302,8 +1323,18 @@ function renderTutor(){
     (rest.map(({s,f}) => `<tr><td>${esc(s.name)}</td><td class="num">${fmtPct(f.p)}</td><td>${f.target!=null?f.target+'%':'–'}</td><td class="num">${f.target==null?'–':f.rewardDue?'Reached':f.reachable?fmtDays(f.need):'Not this year'}</td></tr>`).join('') || '<tr><td colspan="4" class="cellmeta">Nobody else.</td></tr>') + '</tbody>';
 }
 $('tCards').onclick = e => {
+  const a = e.target.closest('[data-aid]');
+  if(a){
+    const id = +a.dataset.aid || a.dataset.aid, s = curUpload().rows[id], f = info(s);
+    if(f.tutorAway){ state.log.splice(state.log.indexOf(f.tutorAway),1); save(); renderAll(); return; }
+    const entry = {sid:id, type:'tutoraway', m:f.target, date:TODAY, staff:user.name, t:Date.now()};
+    state.log.push(entry); lastAction = entry; save();
+    toast('Marked as not in this week: '+s.name.split(', ').reverse().join(' '));
+    renderAll(); return;
+  }
   const b = e.target.closest('[data-tid]'); if(!b) return;
   const id = +b.dataset.tid || b.dataset.tid, s = curUpload().rows[id], f = info(s);
+  if(f.tutorAway) state.log.splice(state.log.indexOf(f.tutorAway),1);
   if(f.tutorChat && f.tutorChat.date===TODAY){ const i = state.log.indexOf(state.log.find(l=>l===f.tutorChat)); state.log.splice(i,1); save(); renderAll(); return; }
   const entry = {sid:id, type:'tutor', m:f.target, date:TODAY, staff:user.name, t:Date.now()};
   state.log.push(entry); lastAction = entry; save();
