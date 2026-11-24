@@ -1,0 +1,8 @@
+# Never commit real pupil data
+data/*
+!data/sample-data.json
+*.xlsx
+*.xls
+*.csv
+.DS_Store
+__pycache__/
