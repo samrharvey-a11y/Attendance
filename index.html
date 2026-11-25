@@ -320,6 +320,8 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .edit-table input,.edit-table select{width:100%;min-width:0}
 .edit-table td{vertical-align:middle}
 
+.morebtn{grid-column:1/-1;justify-content:center;width:100%;padding:12px}
+
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
 #login.on{display:block}
@@ -872,17 +874,18 @@ function seed(){
   // tutor chats for some students close to a milestone
   ids.forEach((id,i) => {
     const s = cur[id]; if(!isFormGroup(s.tutor) || i%3!==1) return;
-    const f = info(s);
+    invalidate(); const f = infoCalc(s);
     if(f.target!=null && f.need>0 && f.reachable && f.need <= state.settings.tutorDays)
       state.log.push({sid:id, type:'tutor', m:f.target, date:sdays[i%3], staff:tutorName(s.tutor)});
   });
   ids.forEach((id,i) => {
     const s = cur[id]; if(!isFormGroup(s.tutor) || i%5!==3) return;
-    const f = info(s);
+    invalidate(); const f = infoCalc(s);
     if(f.tutorWin && !f.tutorChat) state.log.push({sid:id, type:'tutoraway', m:f.target, date:weekStart(today), staff:tutorName(s.tutor)});
   });
   state.log.forEach(l => l.id = l.id || uid());
   state.log.sort((a,b)=>a.date<b.date?-1:1);
+  invalidate();
   save();
 }
 function mockStaff(){
@@ -909,20 +912,25 @@ function serverError(e){ toast('⚠ Not saved: ' + (e && e.message ? e.message :
 function call(fn, ...args){ return new Promise((res, rej) => API.withSuccessHandler(res).withFailureHandler(e => { serverError(e); rej(e); })[fn](...args)); }
 function addLog(entry){
   entry.id = entry.id || uid();
-  state.log.push(entry); save();
+  state.log.push(entry); invalidate(); save();
   if(API) call('addLog', entry).catch(() => { const i = state.log.indexOf(entry); if(i>=0) state.log.splice(i,1); renderAll(); });
   return entry;
 }
 function removeLog(entry){
-  const i = state.log.indexOf(entry); if(i>=0) state.log.splice(i,1); save();
+  const i = state.log.indexOf(entry); if(i>=0) state.log.splice(i,1); invalidate(); save();
   if(API && entry.id) call('removeLog', entry.id);
 }
 function saveSettings(){ save(); if(API) call('saveSettings', state.settings); }
-function setTarget(sid, on){
-  const s = curUpload().rows[sid];
-  if(on) state.targets[sid] = {date:TODAY, by:user.name, start: s && s.P>0 ? Math.round(s.A/s.P*1000)/10 : null};
-  else delete state.targets[sid];
-  save(); if(API) call('setTarget', String(sid), on, on ? state.targets[sid].start : null);
+function setTarget(sid, on){ setTargets([sid], on); }
+function setTargets(ids, on){   // one request for any number of students
+  const changes = ids.map(sid => {
+    const s = curUpload().rows[sid];
+    if(on) state.targets[sid] = {date:TODAY, by:user.name, start: s && s.P>0 ? Math.round(s.A/s.P*1000)/10 : null};
+    else delete state.targets[sid];
+    return [String(sid), on, on ? state.targets[sid].start : null];
+  });
+  invalidate(); save();
+  if(API && changes.length) call('setTargets', changes);
 }
 function saveStaff(){ save(); if(API) call('saveStaff', state.staff); }
 function bootFromServer(){
@@ -957,12 +965,16 @@ function schoolDaysBetween(a,b){ // after a, up to and including b
 function nthSchoolDayAfter(a,n){ let s=a, c=0; while(c<n){ s=addDays(s,1); if(isSchoolDay(s)) c++; if(s>'2099') break; } return s; }
 const curUpload = () => state.uploads[state.uploads.length-1];
 function prevUpload(){ // the upload about two school weeks back, for "change since"
+  if('prev' in MEMO) return MEMO.prev;
+  return MEMO.prev = prevUploadCalc();
+}
+function prevUploadCalc(){
   const u = state.uploads; if(u.length<2) return null;
   const cutoff = schoolDaysBack(dataDate(), 10).pop();
   return u.filter(x => x.date <= cutoff).pop() || u[0];
 }
 function weekStart(s){ const d = parseISO(s); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return iso(d); }
-function uploadOn(date){ const u = state.uploads; return u.filter(x => x.date <= date).pop() || u[0]; }
+function uploadOn(date){ if(UPON.has(date)) return UPON.get(date); const u = state.uploads; const r = u.filter(x => x.date <= date).pop() || u[0]; UPON.set(date, r); return r; }
 function streakDays(id){
   const u = state.uploads; let days = 0, capped = false;
   for(let i=u.length-1;i>0;i--){
@@ -973,7 +985,8 @@ function streakDays(id){
   return {days, capped};
 }
 const dataDate = () => curUpload().date;
-function daysLeft(){
+function daysLeft(){ if(!('dl' in MEMO)) MEMO.dl = daysLeftCalc(); return MEMO.dl; }
+function daysLeftCalc(){
   if(state.settings.useManual) return Math.max(0, +state.settings.manualDays||0);
   return schoolDaysBetween(dataDate(), state.settings.lastDay);
 }
@@ -992,9 +1005,17 @@ const pct = s => s.P>0 ? s.A/s.P*100 : null;
 const fmtPct = v => v==null ? '–' : (Math.round(v*10)/10).toFixed(1)+'%';
 const fmtDays = d => d===1 ? '1 day' : (String(d).replace('.5','½')+' days').replace(/^0½/,'½');
 
-function info(s){
+/* ---------- speed: work each figure out once per redraw ---------- */
+let INFO = new Map(), LOGIDX = null, UPON = new Map(), MEMO = {};
+function invalidate(){ INFO = new Map(); LOGIDX = null; UPON = new Map(); MEMO = {}; }
+function logsFor(id){
+  if(!LOGIDX){ LOGIDX = new Map(); state.log.forEach(l => { const k = String(l.sid); if(!LOGIDX.has(k)) LOGIDX.set(k, []); LOGIDX.get(k).push(l); }); }
+  return LOGIDX.get(String(id)) || [];
+}
+function info(s){ let r = INFO.get(s.id); if(!r){ r = infoCalc(s); INFO.set(s.id, r); } return r; }
+function infoCalc(s){
   const L = daysLeft(), p = pct(s);
-  const logs = state.log.filter(l => l.sid===s.id);
+  const logs = logsFor(s.id).slice();
   const rewarded = new Set(logs.filter(l=>l.type==='reward').map(l=>l.m));
   let activeGoal = null;
   logs.forEach(l => { if(l.type==='goal') activeGoal = l; if(l.type==='reward' && activeGoal && l.m===activeGoal.m) activeGoal = null; });
@@ -1038,7 +1059,7 @@ function info(s){
 }
 
 /* ---------- rendering: lists ---------- */
-let curList = 'new', selId = null;
+let curList = 'new', selId = null, cardLimit = 50;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function allStudents(){ return Object.values(curUpload().rows).filter(s => s.P>0); }
@@ -1130,6 +1151,7 @@ function renderLists(){
   });
   if(!rows.length){ $('cards').innerHTML = `<div class="empty">No students here${q||fy||ft||fb||fd||$('fBlock').value?' with these filters':''}.</div>`; return; }
   let lastG = null;
+  const total = rows.length; rows = rows.slice(0, cardLimit);
   $('cards').innerHTML = rows.map(({s,f,w,loc}) => {
     let head = '';
     if(sort==='loc'){ const g = lkey(loc); if(g!==lastG){ lastG = g; const n = rows.filter(x=>lkey(x.loc)===g).length; head = `<div class="grouphead">${loc ? ZONES[loc.z]+' block · '+FLOORS[loc.f] : 'No room (form time, PE, study periods and others)'} <span>${n}</span></div>`; } }
@@ -1138,7 +1160,7 @@ function renderLists(){
       <div class="meta">${f.tg?'<span class="star" title="Target group">★</span> ':''}${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}</div>${curList==='check'?statusShort(f):'<span></span>'}
       <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}</div>
       ${hasTimetable() ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
-    </button>`; }).join('');
+    </button>`; }).join('') + (total > rows.length ? `<button class="btn morebtn" id="moreCards">Show ${Math.min(50, total-rows.length)} more (${total-rows.length} not shown)</button>` : '');
 }
 function changeTag(c){
   if(Math.abs(c)<0.05) return `<span class="tag grey">no change</span>`;
@@ -1152,7 +1174,7 @@ function fillSelect(sel, vals, first){
 
 /* ---------- detail sheet ---------- */
 let pickGoal = null, showPick = false;
-function openStudent(id){
+function openStudent(id){ // (only the panel is drawn; the list stays as it is)
   selId = id; pickGoal = null; showPick = false;
   renderDetail();
   $('sheet').classList.add('on'); $('shade').classList.add('on'); $('sheet').setAttribute('aria-hidden','false');
@@ -1682,6 +1704,7 @@ function setMsg(k,t){ ['upMsg','fuMsg'].forEach(id => { const m=$(id); if(m){ m.
 
 /* ---------- wiring ---------- */
 function renderAll(){
+  invalidate();
   if(!user){ showLogin(); return; }
   $('meLabel').innerHTML = '<b>'+esc(user.name)+'</b>'+(user.role==='tutor'?' · '+esc(user.tutor): isPastoral(user.role)?' · '+esc(user.year):'');
   $('signOut').style.display = API ? 'none' : '';
@@ -1705,12 +1728,12 @@ function showSection(id){
 $('nav').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   if(b.dataset.s==='settings') importCfgLoaded = false;   // fresh import status each time Settings opens
   showSection(b.dataset.s); closeStudent(); window.scrollTo(0,0); renderAll(); };
-$('seg').onclick = e => { const b = e.target.closest('button'); if(!b) return; curList = b.dataset.l;
+$('seg').onclick = e => { const b = e.target.closest('button'); if(!b) return; curList = b.dataset.l; cardLimit = 50;
   document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b)); renderLists(); };
-['q','fYear','fTutor','fBand','fBlock','fGroup','fSort','fDue'].forEach(id => $(id).addEventListener('input', renderLists));
+['q','fYear','fTutor','fBand','fBlock','fGroup','fSort','fDue'].forEach(id => $(id).addEventListener('input', () => { cardLimit = 50; renderLists(); }));
 let sortTouched = false; $('fSort').addEventListener('input', () => sortTouched = true);
 $('fBtn').onclick = () => { const b = $('filterBox'); b.hidden = !b.hidden; $('fBtn').classList.toggle('on', !b.hidden); };
-$('cards').onclick = e => { const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id); };
+$('cards').onclick = e => { if(e.target.id==='moreCards'){ cardLimit += 50; renderLists(); return; } const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id); };
 $('mOver').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
 $('tgRows').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
 $('shade').onclick = closeStudent; $('dClose').onclick = closeStudent;
@@ -1726,9 +1749,9 @@ const S = state => state.settings;
 function setSetting(k,v){ state.settings[k]=v; saveSettings(); renderAll(); }
 $('tGoal').onchange = e => setSetting('tGoal', Math.min(100,Math.max(1,+e.target.value||90)));
 let clearArmed = null;
-$('tgAddDA').onclick = () => { let n = 0; students().forEach(s => { if(s.da && info(s).list && !state.targets[s.id]){ setTarget(s.id, true); n++; } }); toast(n ? n+' DA students added to the target group' : 'All DA students on the list are already in the group'); renderAll(); };
+$('tgAddDA').onclick = () => { const add = students().filter(s => s.da && info(s).list && !state.targets[s.id]).map(s => s.id); setTargets(add, true); toast(add.length ? add.length+' DA students added to the target group' : 'All DA students on the list are already in the group'); renderAll(); };
 $('tgClear').onclick = () => { const b = $('tgClear'); if(!clearArmed){ b.textContent = 'Tap again to clear everyone'; clearArmed = setTimeout(()=>{ clearArmed=null; b.textContent='Clear the target group'; }, 4000); return; }
-  clearTimeout(clearArmed); clearArmed = null; b.textContent = 'Clear the target group'; Object.keys(state.targets).forEach(id => setTarget(id, false)); renderAll(); };
+  clearTimeout(clearArmed); clearArmed = null; b.textContent = 'Clear the target group'; setTargets(Object.keys(state.targets), false); renderAll(); };
 $('rwTable').onchange = e => { const el = e.target.closest('[data-rwi]'); if(!el) return; const r = state.settings.rewards[+el.dataset.rwi]; r[el.dataset.k] = el.dataset.k==='from' ? +el.value : el.value.trim(); saveSettings(); };
 $('rwTable').onclick = e => { const b = e.target.closest('[data-rwdel]'); if(!b) return; state.settings.rewards.splice(+b.dataset.rwdel,1); saveSettings(); renderSettings(); };
 $('rwAdd').onclick = () => { (state.settings.rewards ||= []).push({name:'New reward', from:10}); saveSettings(); renderSettings(); };
