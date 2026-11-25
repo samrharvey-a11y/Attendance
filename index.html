@@ -55,7 +55,7 @@ button.small{padding:4px 9px;font-size:13px}
 button:disabled{opacity:.45;cursor:not-allowed}
 
 input[type=file]{display:none}
-input[type=text],input[type=number],input[type=date],input[type=time],input[type=search],select{font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+input[type=text],input[type=password],input[type=number],input[type=date],input[type=time],input[type=search],select{font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
 input[type=number]{width:80px}
 textarea{font:inherit;font-size:14px;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);resize:vertical;line-height:1.5}
 .field{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
@@ -517,7 +517,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 
     <div class="panel">
       <h2>Staff roles</h2>
-      <p class="hint">Learning leaders and pastoral leaders see their own year group. Anyone not listed here is a tutor and picks their form the first time they open the app.</p>
+      <p class="hint">Learning leaders and pastoral leaders see their own year group. Everyone else is a tutor: they're matched to their form from the staff codes below, or pick one if they aren't in the list.</p>
       <div class="scroll"><table class="edit-table" id="staffTable"></table></div>
       <div class="row" style="margin-top:10px"><button class="btn" id="staffAdd">Add a person</button><span class="grow"></span><span class="hint" id="staffMsg" style="margin:0"></span></div>
     </div>
@@ -563,8 +563,20 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 
     <div class="panel" id="importPanel" style="display:none">
       <h2>Synergy import</h2>
-      <p class="hint" id="importMsg">Attendance is imported from Synergy automatically every school morning.</p>
-      <button class="btn primary" id="importNow">Import now</button>
+      <p class="hint">The app can fetch the Tracker-Milestones report from Synergy by itself every school morning, so nobody has to upload it. The password is stored in the script's private settings and never shown again.</p>
+      <div class="msg" id="importState"></div>
+      <div class="grid-form">
+        <label class="field">Synergy address<input type="text" id="impUrl" placeholder="https://…schoolsynergy.co.uk/…"></label>
+        <label class="field">Username<input type="text" id="impUser" autocomplete="off"></label>
+        <label class="field">Password<input type="password" id="impPass" autocomplete="new-password" placeholder=""></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="impSave">Save details</button>
+        <button class="btn" id="impTest">Test connection</button>
+        <button class="btn primary" id="importNow">Import now</button>
+      </div>
+      <div class="msg" id="importMsg"></div>
+      <label class="radio" style="margin-top:6px"><input type="checkbox" id="impDaily"> Import automatically every school day at about 7am</label>
     </div>
 
     <div class="panel" id="uploadPanel">
@@ -921,7 +933,7 @@ function bootFromServer(){
     // rebuild each day's rows from today's student details plus the compact history
     const info0 = {}; (b.current||[]).forEach(s => info0[s.id] = s);
     const uploads = (b.snaps||[]).map(sn => { const rows = {}; Object.keys(sn.d).forEach(id => { const c = info0[id]; if(c) rows[id] = {...c, P:sn.d[id][0], A:sn.d[id][1]}; }); return {date:sn.date, rows}; });
-    state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], targets:b.targets||{}, staff:b.staff||[], tutors:b.tutors||{}, lastImport:b.lastImport||'', staffCodesCount: b.staffCodes ? b.staffCodes.count : 0};
+    state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], targets:b.targets||{}, staff:b.staff||[], tutors:b.tutors||{}, lastImport:b.lastImport||'', staffCodesCount: b.staffCodes ? b.staffCodes.count : 0, importError:b.importError||''};
     user = b.user;
     TT = b.tt ? buildTT(b.tt.classes, b.tt.map) : null; TT_META = b.tt ? b.tt.meta : null;
     if(!state.uploads.length){
@@ -1079,7 +1091,7 @@ function renderLists(){
   $('c-new').textContent = counts.new; $('c-reward').textContent = counts.reward;
   $('c-check').textContent = counts.check;
   const onList = all.filter(x=>x.f.list).length;
-  $('databar').textContent = `${daysLeft()} school days left · data from ${nice(dataDate())}`;
+  $('databar').innerHTML = esc(`${daysLeft()} school days left · data from ${nice(dataDate())}`) + (API && user.role==='vp' && state.importError ? ` · <span style="color:var(--bad)">⚠ Synergy import failed: see Settings</span>` : '');
   $('listhint').textContent = LIST_HINT[curList].replace('{n}', state.settings.ciDays);
   const nf = ['fYear','fTutor','fBand','fBlock','fGroup'].filter(id=>$(id).value && $(id).style.display!=='none').length + ($('fDue').checked&&curList==='check'?1:0);
   $('fBtn').textContent = nf ? 'Filter ('+nf+')' : 'Filter';
@@ -1438,7 +1450,7 @@ function renderSettings(){
   const scN = API ? (state.staffCodesCount||0) : (state.staffCodes||[]).length;
   $('scStatus').textContent = scN ? `✓ ${scN} staff codes saved.` : (API ? '⚠ No staff codes yet, so every tutor picks their own form.' : 'The mock-up uses made-up tutor names until a list is uploaded.');
   $('ttStatus').innerHTML = TT_META ? `✓ Timetable uploaded ${niceY(TT_META.uploaded)}: ${TT_META.students} students, ${TT_META.classes} classes${TT_META.matched!=null?', '+TT_META.matched+' matched to the attendance list':''}.` : (API ? '⚠ No timetable uploaded yet, so locations are hidden.' : 'The mock-up is using a made-up timetable. Uploading real files replaces it.');
-  if(API && state.lastImport) $('importMsg').textContent = 'Attendance is imported from Synergy every school morning. Last import: '+state.lastImport+'.';
+  if(API && !importCfgLoaded){ importCfgLoaded = true; loadImportCfg(); }
   $('mockPanel').style.display = API ? 'none' : '';
   $('tPct').value = st.tPct; $('tDays').value = st.tDays; $('tNear').value = st.tNear; $('tutorDays').value = st.tutorDays; $('offDrop').value = st.offDrop ?? 1; $('ciDays').value = st.ciDays;
   $('lastDay').value = st.lastDay; $('dataDate').value = dataDate();
@@ -1637,7 +1649,7 @@ function importRows(lines, date){
   if(h >= 0){
     const head = lines[h].map(norm), find = re => head.findIndex(x => re.test(x));
     col = {id:find(/studentid|pupilid|^id$|adno|admission|^upn$/), sur:find(/surname|lastname|familyname/), fore:find(/forename|firstname|givenname/), name:find(/fullname|studentname/),
-      year:find(/^year/), tutor:find(/^reg|tutor|^form/), P:find(/possible/), A:find(/present|attended/), da:find(/^(da|fsm|fsm6|fsmever6|pp|disadvantaged|pupilpremium)$/), f:1};
+      year:find(/^year/), tutor:find(/^reg|tutor|^form/), P:find(/possible/), A:find(/present|attended/), da:-1, daCols: head.map((x,i) => /^(da|fsm|fsm6|fsmever6|ever6|pp|pupilpremium|disadvantaged|lac|cla|pla|service|servicechild)$/.test(x) ? i : -1).filter(i => i >= 0), f:1};
     lines = lines.slice(h+1);
     const body = lines.filter(r => r.some(x => String(x).trim()));
     if(col.P >= 0 && col.A >= 0 && body.filter(r => parseFloat(r[col.A]) > parseFloat(r[col.P])).length > body.length/2){ const x = col.P; col.P = col.A; col.A = x; }
@@ -1654,7 +1666,7 @@ function importRows(lines, date){
     const idNum = !API && !sid && /^\d+$/.test(name) ? +name : null;
     const id = sid ?? idNum ?? name;
     if(P===0) zero++;
-    rows[id] = {id, name: idNum!=null ? fakeName(idNum) : name, year:c[col.year]||'', tutor:c[col.tutor]||'', P, A, da: /^(y|yes|true|1|da|pp|fsm)$/i.test(c[col.da]||'')};
+    rows[id] = {id, name: idNum!=null ? fakeName(idNum) : name, year:c[col.year]||'', tutor:c[col.tutor]||'', P, A, da: (col.daCols || (col.da>=0 ? [col.da] : [])).some(i => /^(y|yes|true|1|da|pp|fsm)$/i.test(c[i]||''))};
   });
   const n = Object.keys(rows).length;
   if(!n){ setMsg('bad','No students found. Check the headings are StudentId, LastName, FirstName, YearGroup, RegGroup, SessionsPresent, SessionsPossible, FSM.'); return; }
@@ -1691,6 +1703,7 @@ function showSection(id){
   document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on', s.id==='s-'+id));
 }
 $('nav').onclick = e => { const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.s==='settings') importCfgLoaded = false;   // fresh import status each time Settings opens
   showSection(b.dataset.s); closeStudent(); window.scrollTo(0,0); renderAll(); };
 $('seg').onclick = e => { const b = e.target.closest('button'); if(!b) return; curList = b.dataset.l;
   document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b)); renderLists(); };
@@ -1722,7 +1735,30 @@ $('rwAdd').onclick = () => { (state.settings.rewards ||= []).push({name:'New rew
 $('staffTable').onchange = e => { const el = e.target.closest('[data-sti]'); if(!el) return; const p = state.staff[+el.dataset.sti]; p[el.dataset.k] = el.value.trim(); if(p.role==='vp') p.year=''; saveStaff(); $('staffMsg').textContent = '✓ Saved'; renderSettings(); };
 $('staffTable').onclick = e => { const b = e.target.closest('[data-stdel]'); if(!b) return; state.staff.splice(+b.dataset.stdel,1); saveStaff(); renderSettings(); };
 $('staffAdd').onclick = () => { state.staff.push({name:'', email:'', role:'pl', year:''}); renderSettings(); };
-$('importNow').onclick = () => { $('importMsg').textContent = 'Importing from Synergy…'; call('importNow').then(r => { $('importMsg').textContent = '✓ '+r; bootFromServer(); }).catch(e => { $('importMsg').textContent = '⚠ '+(e.message||e); }); };
+let importCfgLoaded = false;
+function impMsg(k, h){ const m = $('importMsg'); m.className = 'msg '+k; m.innerHTML = h; }
+function showImportCfg(c){
+  $('impUrl').value = c.url; $('impUser').value = c.user; $('impPass').value = ''; $('impPass').placeholder = c.hasPass ? '•••••••• saved (type to change)' : '';
+  $('impDaily').checked = c.daily;
+  const st = $('importState');
+  if(c.lastError){ st.className = 'msg bad'; st.textContent = '⚠ The last import failed: '+c.lastError; }
+  else if(c.daily){ st.className = 'msg ok'; st.textContent = '✓ Automatic import is on.'+(c.last ? ' Last: '+c.last+'.' : ''); }
+  else if(c.url){ st.className = 'msg warn'; st.textContent = 'Automatic import is off. Test the connection, then tick the box below.'+(c.last ? ' Last import: '+c.last+'.' : ''); }
+  else { st.className = 'msg info'; st.textContent = 'Not set up yet. Enter the Synergy details below.'; }
+}
+function loadImportCfg(){ call('getImportConfig').then(showImportCfg).catch(()=>{}); }
+$('impSave').onclick = () => { impMsg('info','Saving…'); call('saveImportConfig', {url:$('impUrl').value.trim(), user:$('impUser').value.trim(), pass:$('impPass').value}).then(c => { showImportCfg(c); impMsg('ok','✓ Details saved. Now test the connection.'); }); };
+$('impTest').onclick = () => {
+  impMsg('info','Connecting to Synergy…');
+  const save = $('impPass').value || $('impUrl').value.trim() ? call('saveImportConfig', {url:$('impUrl').value.trim(), user:$('impUser').value.trim(), pass:$('impPass').value}).then(showImportCfg) : Promise.resolve();
+  save.then(() => call('testImport')).then(r => {
+    const c = r.columns, miss = Object.entries(c).filter(([k,v]) => v==='not found' && k!=='da' && k!=='id').map(([k])=>k);
+    impMsg(r.students && !miss.length ? 'ok' : 'warn', `${r.students && !miss.length ? '✓ Connected.' : '⚠ Connected, but check this.'} Synergy sent ${r.rows} rows (${esc(r.type)}), and ${r.students} students can be read.<br>
+      ID: <b>${esc(c.id)}</b> · Name: <b>${esc(c.name)}</b> · Year: <b>${esc(c.year)}</b> · Form: <b>${esc(c.form)}</b> · Present: <b>${esc(c.present)}</b> · Possible: <b>${esc(c.possible)}</b> · DA: <b>${esc(c.da)}</b>${r.sessions ? '<br>Figures are sessions, so they\'ll be halved to give days.' : ''}${miss.length ? '<br>Couldn\'t find: '+miss.join(', ')+'.' : ''}`);
+  }).catch(e => impMsg('bad','⚠ '+esc(e.message||e)));
+};
+$('impDaily').onchange = e => { const on = e.target.checked; call('setDailyImport', on).then(c => { showImportCfg(c); impMsg('ok', on ? '✓ The app will import from Synergy every school day at about 7am.' : 'Automatic import turned off.'); }).catch(() => { e.target.checked = !on; }); };
+$('importNow').onclick = () => { impMsg('info','Importing from Synergy…'); call('importNow').then(r => { impMsg('ok','✓ '+esc(r)); importCfgLoaded = false; bootFromServer(); }).catch(e => { impMsg('bad','⚠ '+esc(e.message||e)); loadImportCfg(); }); };
 document.querySelectorAll('input[name=tmode]').forEach(r => r.onchange = () => setSetting('tmode', r.value));
 $('tPct').onchange = e => setSetting('tPct', Math.min(100,Math.max(1,+e.target.value||90)));
 $('tDays').onchange = e => setSetting('tDays', Math.max(0,+e.target.value||0));
