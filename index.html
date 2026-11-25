@@ -303,6 +303,22 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .tcard.away{background:#f7f8fa}
 .tcard.away .say{opacity:.6}
 .sbar .a{background:#b9c0cc}
+.sbar .w{background:var(--warn)}
+
+.datag{display:inline-block;font-size:10.5px;font-weight:700;color:#5b3a8c;background:#efe8fa;border-radius:4px;padding:0 5px;vertical-align:1px}
+.star{color:var(--gold);font-weight:700}
+.tgline{font-size:13px;background:var(--gold-soft);border-radius:6px;padding:7px 10px;margin:0 0 8px}
+.rewardbox{border:1.5px solid var(--gold);background:var(--gold-soft);border-radius:12px;padding:10px 12px}
+.rbtitle{font-size:13.5px;font-weight:700;color:var(--gold-ink);margin-bottom:8px}
+.rchips{display:flex;flex-wrap:wrap;gap:6px}
+.rchips button{border:1px solid var(--gold);background:#fff;border-radius:999px;padding:8px 13px;font:inherit;font-size:14px;cursor:pointer;color:var(--ink)}
+.rchips button:hover{background:var(--gold);color:#fff}
+.tgbtn{width:100%;margin-top:10px;border:1px dashed var(--gold);background:#fff;color:var(--gold-ink);border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;cursor:pointer}
+.tgbtn.on{border-style:solid;background:var(--gold-soft);font-weight:600}
+#loading{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;place-items:center;text-align:center;padding:30px;color:var(--muted)}
+#loading.on{display:grid}
+.edit-table input,.edit-table select{width:100%;min-width:0}
+.edit-table td{vertical-align:middle}
 
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
@@ -373,7 +389,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   <section id="s-lists" class="on">
     <div class="topline" id="databar"></div>
     <div class="seg" id="seg">
-      <button data-l="new" class="on"><span>New</span><span class="count" id="c-new">0</span></button>
+      <button data-l="new" class="on"><span>New to list</span><span class="count" id="c-new">0</span></button>
       <button data-l="reward"><span>Reward due</span><span class="count" id="c-reward">0</span></button>
       <button data-l="check"><span>Check-in</span><span class="count" id="c-check">0</span></button>
     </div>
@@ -393,6 +409,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
         <option value="90-101">90% and above</option>
       </select>
       <select id="fBlock"><option value="">All blocks</option><option value="N">North</option><option value="E">East</option><option value="S">South</option><option value="W">West</option><option value="C">College</option></select>
+      <select id="fGroup"><option value="">All students</option><option value="da">DA only</option><option value="target">Target group only</option></select>
       <select id="fSort">
         <option value="loc" selected>By where they are now</option>
         <option value="days">Fewest days first</option>
@@ -421,6 +438,18 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   <section id="s-monitor">
     <div class="stephead row"><h2 class="grow">Monitoring</h2><button class="btn" id="printWeek">Print weekly summary</button></div>
     <div class="stats" id="mStats" style="margin-bottom:16px"></div>
+    <div class="panel" id="plPanel">
+      <h2>Pastoral leaders</h2>
+      <p class="hint" id="plHint"></p>
+      <div class="frows" id="plRows"></div>
+    </div>
+    <div class="panel">
+      <div class="row"><h2 class="grow">Target group</h2>
+        <select id="tgFilter"><option value="in">Still in the challenge</option><option value="done">Completed</option><option value="all">Everyone in the group</option></select></div>
+      <p class="hint" id="tgHint"></p>
+      <div class="stats" id="tgStats" style="margin-bottom:12px"></div>
+      <div class="scroll" style="max-height:60vh"><table id="tgRows"></table></div>
+    </div>
     <div class="panel">
       <div class="row"><h2 class="grow">Tutor conversations</h2>
         <select id="tmFilter"><option value="active">Forms with students to speak to</option><option value="out">Still to log</option><option value="none">Nothing logged</option><option value="all">All forms</option></select></div>
@@ -444,6 +473,8 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       <div id="mImpact"></div>
       <h3>Rewards given by milestone</h3>
       <div class="bars" id="mBars"></div>
+      <h3>Rewards given by type</h3>
+      <div class="scroll"><table id="mRewardTypes"></table></div>
       <h3>Team activity, last 10 school days</h3>
       <div class="scroll"><table id="mStaff"></table></div>
       <div class="row" style="margin-top:12px"><button class="btn small" id="dlLog">Copy activity log</button></div>
@@ -463,7 +494,32 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       <p class="hint" id="scopeMsg" style="margin:8px 0 14px"></p>
       <label class="radio">Check-in due every <input type="number" id="ciDays" min="1" step="1"> school days</label>
       <label class="radio">Tutors see students <input type="number" id="tutorDays" min="0.5" step="0.5"> days or fewer from a milestone</label>
-      <label class="radio">Off track when attendance drops <input type="number" id="offDrop" min="0.1" step="0.1"> points or more since the goal was set</label>
+      <label class="radio">Declining when attendance drops <input type="number" id="offDrop" min="0.1" step="0.1"> points or more since they were last seen</label>
+    </div>
+
+    <div class="panel">
+      <h2>Target group</h2>
+      <p class="hint" id="tgSetHint"></p>
+      <label class="radio">They complete the challenge at <input type="number" id="tGoal" min="1" max="100" step="1">% attendance</label>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="tgAddDA">Add all DA students on the list</button>
+        <button class="btn danger" id="tgClear">Clear the target group</button>
+      </div>
+      <p class="hint" style="margin:10px 0 0">You can also add or remove one student from their panel: tap their name, then the ☆ button.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Rewards</h2>
+      <p class="hint">Staff pick one of these when they log a reward. "From" is the lowest milestone it can be given for.</p>
+      <div class="scroll"><table class="edit-table" id="rwTable"></table></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="rwAdd">Add a reward</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>Staff roles</h2>
+      <p class="hint">Learning leaders and pastoral leaders see their own year group. Anyone not listed here is a tutor and picks their form the first time they open the app.</p>
+      <div class="scroll"><table class="edit-table" id="staffTable"></table></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="staffAdd">Add a person</button><span class="grow"></span><span class="hint" id="staffMsg" style="margin:0"></span></div>
     </div>
 
     <div class="panel">
@@ -473,6 +529,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
         <div class="bignum"><b id="daysLeft">0</b> school days left</div>
       </div>
       <input type="date" id="dataDate" hidden disabled>
+      <div class="msg warn" id="calWarn" style="display:none">⚠ No holidays or INSET days are marked yet, so the days left (and every "by" date) count them as school days. Open the calendar below and mark them.</div>
       <details><summary>Holidays and INSET days (<span id="closedCount">0</span> ahead)</summary>
         <p class="hint">Tap a weekday: once for holiday (red), twice for INSET (gold), three times to clear. ⚠ The dates filled in are examples.</p>
         <div class="months" id="months"></div>
@@ -480,9 +537,15 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       </details>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="importPanel" style="display:none">
+      <h2>Synergy import</h2>
+      <p class="hint" id="importMsg">Attendance is imported from Synergy automatically every school morning.</p>
+      <button class="btn primary" id="importNow">Import now</button>
+    </div>
+
+    <div class="panel" id="uploadPanel">
       <h2>Upload data</h2>
-      <p class="hint">Student name, Year, Tutor, Days possible, Days present. Paste from Excel or choose a .csv file.</p>
+      <p class="hint">Student name, Year, Tutor, Days possible, Days present, DA (Y or N). Paste from Excel or choose a .csv file.</p>
       <textarea id="paste" rows="3" placeholder="Paste rows here"></textarea>
       <div class="row" style="margin-top:10px">
         <label class="field" style="flex-direction:row;align-items:center;gap:8px">Correct up to<input type="date" id="upDate"></label>
@@ -494,7 +557,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       <p class="hint" id="upHist" style="margin:0"></p>
     </div>
 
-    <details class="panel"><summary>Mock-up controls</summary>
+    <details class="panel" id="mockPanel"><summary>Mock-up controls</summary>
       <div class="grid-form" style="margin-top:10px">
         <label class="field">Clock<select id="clockMode"><option value="live">Live time</option><option value="demo">Pretend time</option></select></label>
         <label class="field">Pretend day<select id="clockDay"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option></select></label>
@@ -511,12 +574,15 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   <p class="hint" style="margin:14px 0 20px">Mock-up sign-in: choose who you are. The real app will sign you in with your school Google account and pick the right view for you.</p>
   <div class="panel"><h2>Senior leadership</h2><p class="hint">Sees every year group, the monitoring summary and the settings.</p>
     <div class="rolegrid"><button class="rolebtn vp" data-role="vp">Vice Principal<small>All years · settings</small></button></div></div>
-  <div class="panel"><h2>Pastoral teams</h2><p class="hint">Lists and monitoring are filtered to your year group.</p>
-    <div class="rolegrid" id="pastoralBtns"></div></div>
-  <div class="panel"><h2>Tutors</h2><p class="hint">See the students in your form who are close to their next milestone and tick off when you've spoken to them.</p>
+  <div class="panel"><h2>Learning leaders</h2><p class="hint">Lists and monitoring for your year group.</p>
+    <div class="rolegrid" id="llBtns"></div></div>
+  <div class="panel"><h2>Pastoral leaders</h2><p class="hint">Lists and monitoring for your year group.</p>
+    <div class="rolegrid" id="plBtns"></div></div>
+  <div class="panel" id="tutorPanel"><h2>Tutors</h2><p class="hint" id="tutorHint">See the students in your form who are close to their next milestone and tick off when you've spoken to them.</p>
     <div class="row"><select id="tutorYear"></select><select id="tutorSel" class="grow"></select><button class="btn primary" id="tutorGo">Sign in as tutor</button></div></div>
 </div></div>
 
+<div id="loading"><div><img src="data:image/png;base64,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" alt="" style="height:54px;background:var(--accent);padding:8px 14px;border-radius:8px"><p id="loadingMsg" style="margin-top:14px">Loading…</p></div></div>
 <div class="shade" id="shade"></div>
 <aside class="sheet" id="sheet" aria-hidden="true">
   <div class="grab"></div>
@@ -526,16 +592,22 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="undoBtn">Undo</button></div>
 
 <script>
-const RAW = [[1,"Year 7","7B",46.5,31.5],[2,"Year 7","7C",54,42.0],[3,"Year 7","7C",54,25.0],[4,"Year 7","7A",54,31.0],[5,"Year 7","7C",54,36.0],[6,"Year 7","7B",54,21.5],[7,"Year 8","8D",28.5,13.5],[8,"Year 8","8A",54,26.0],[9,"Year 8","REFLECT",54,32.5],[10,"Year 8","8D",54,26.0],[11,"Year 8","8B",54,42.0],[12,"Year 8","8B",54,32.5],[13,"Year 8","8D",54,38.5],[14,"Year 8","8C",54,33.5],[15,"Year 8","8D",54,34.5],[16,"Year 8","8B",46.5,35.0],[17,"Year 8","8C",54,35.5],[18,"Year 8","8A",54,23.5],[19,"Year 8","8D",54,32.5],[20,"Year 8","8B",36,21.5],[21,"Year 8","8A",54,32.0],[22,"Year 8","8B",54,32.5],[23,"Year 9","9D",54,35.5],[24,"Year 9","9A",54,36.5],[25,"Year 9","9A",54,40.5],[26,"Year 9","9B",54,24.0],[27,"Year 9","9A",54,40.5],[28,"Year 9","9B",54,30.0],[29,"Year 9","9D",54,25.5],[30,"Year 9","9D",54,25.5],[31,"Year 9","9A",24,12.0],[32,"Year 9","9A",54,30.0],[33,"Year 9","9C",54,29.0],[34,"Year 9","9D",54,21.0],[35,"Year 9","9C",54,33.0],[36,"Year 9","9B",54,25.5],[37,"Year 9","REFLECT",54,40.5],[38,"Year 9","9D",54,22.0],[39,"Year 9","9D",54,30.5],[40,"Year 10","10B",54,38.0],[41,"Year 10","10C",54,29.5],[42,"Year 10","10B",54,17.5],[43,"Year 10","10D",54,42.0],[44,"Year 10","10B",54,36.5],[45,"Year 10","10C",54,37.0],[46,"Year 10","REFLECT",54,20.5],[47,"Year 10","10D",54,33.5],[48,"Year 10","REFLECT",54,40.5],[49,"Year 10","10C",54,42.0],[50,"Year 10","10B",54,41.5],[51,"Year 10","10B",54,33.5],[52,"Year 10","REFLECT",54,35.5],[53,"Year 10","10C",54,34.5],[54,"Year 10","10D",54,41.5],[55,"Year 11","11B",54,34.5],[56,"Year 11","11F",54,26.5],[57,"Year 11","11B",54,31.0],[58,"Year 11","REFLECT",54,32.5],[59,"Year 11","11B",54,41.0],[60,"Year 11","11A",54,35.5],[61,"Year 11","11A",54,29.0],[62,"Year 11","11F",54,28.0],[63,"Year 11","11D",54,34.0],[64,"Year 11","11A",42.5,31.5],[65,"Year 11","11B",54,33.5],[66,"Year 11","11F",54,39.0],[67,"Year 11","11D",46.5,29.0],[68,"Year 11","11B",54,27.5],[69,"Year 11","11A",54,33.0],[70,"Year 11","11B",54,40.5],[71,"Year 11","11D",54,35.5],[72,"Year 11","11F",54,16.5],[73,"Year 11","11E",54,36.5],[74,"Year 11","11F",54,26.0],[75,"Year 11","11A",54,41.5],[76,"Year 11","11E",54,33.5],[77,"Year 11","11E",54,34.5],[78,"Year 11","11B",54,34.5],[79,"Year 11","11E",54,42.0],[80,"Year 11","11D",54,22.0],[81,"Year 11","11F",54,33.0],[82,"Year 11","11D",54,37.0],[83,"Year 11","11D",54,40.5],[84,"Year 11","11A",30,18.0],[85,"Year 11","11A",54,33.0],[86,"Year 11","11D",54,36.0],[87,"Year 11","11F",54,28.5],[88,"Year 11","11C",54,42.0],[89,"Year 12","12T1",42.5,25.5],[90,"Year 12","12T2",42.5,19.0],[91,"Year 12","12T2",54,23.5],[92,"Year 12","12T2",54,30.5],[93,"Year 12","12T1",54,38.0],[94,"Year 12","12T2",54,31.0],[95,"Year 12","12T1",54,34.0],[96,"Year 12","12T2",54,31.0],[97,"Year 12","12T2",54,24.5],[98,"Year 12","12T2",54,29.5],[99,"Year 12","12T2",54,30.0],[100,"Year 12","REFLECT",54,32.5],[101,"Year 12","12T1",54,40.5],[102,"Year 13","13T2",54,36.0],[103,"Year 13","13T1",54,31.5],[104,"Year 13","13T2",54,29.0],[105,"Year 13","13T1",54,34.0],[106,"Year 13","13T2",30,15.5],[107,"Year 13","13T2",54,32.5],[108,"Year 13","13T1",54,27.0],[109,"Year 13","13T1",54,37.0],[110,"Year 13","13T1",54,42.0],[111,"Year 13","13T1",54,17.5],[112,"Year 13","13T1",54,30.0],[113,"Year 13","13T2",54,34.5],[114,"Year 13","13T2",54,33.5],[115,"Year 13","13T2",54,42.0],[116,"Year 13","13T2",54,20.0],[117,"Year 13","13T2",54,27.5],[118,"Year 9","9A",0,0],[119,"Year 11","11B",0,0]];
-const KEY = 'rainfordAttendanceMilestones.v4';
+const RAW = [[1,"Year 7","7B",46.5,37.0,"Y"],[2,"Year 7","7A",54,30.5,"Y"],[3,"Year 7","7B",54,36.5,"N"],[4,"Year 7","7A",54,50.0,"N"],[5,"Year 7","7B",54,25.5,"N"],[6,"Year 7","7C",54,46.5,"N"],[7,"Year 7","7C",46.5,26.5,"Y"],[8,"Year 7","7B",54,38.5,"N"],[9,"Year 7","7B",54,30.5,"N"],[10,"Year 7","7A",54,31.5,"Y"],[11,"Year 7","7B",54,27.0,"Y"],[12,"Year 7","7C",54,33.0,"N"],[13,"Year 7","7A",54,42.0,"N"],[14,"Year 7","7B",54,49.0,"Y"],[15,"Year 8","REFLECT",54,49.0,"Y"],[16,"Year 8","8A",54,49.0,"Y"],[17,"Year 8","8B",54,41.5,"N"],[18,"Year 8","8D",54,49.0,"Y"],[19,"Year 8","8B",54,42.5,"Y"],[20,"Year 8","8A",54,38.0,"N"],[21,"Year 8","8C",54,21.5,"Y"],[22,"Year 8","8C",54,42.0,"Y"],[23,"Year 8","8D",54,45.5,"N"],[24,"Year 8","8A",28.5,16.5,"Y"],[25,"Year 8","8B",54,24.5,"N"],[26,"Year 8","8C",54,49.0,"N"],[27,"Year 8","8C",54,40.0,"N"],[28,"Year 8","8D",54,36.5,"Y"],[29,"Year 8","8A",54,35.5,"Y"],[30,"Year 8","8C",54,34.5,"Y"],[31,"Year 9","9D",54,25.0,"Y"],[32,"Year 9","9A",54,47.0,"Y"],[33,"Year 9","9A",54,50.0,"N"],[34,"Year 9","9B",54,32.5,"N"],[35,"Year 9","9B",54,44.5,"N"],[36,"Year 9","9D",54,30.0,"N"],[37,"Year 9","9B",54,44.5,"N"],[38,"Year 9","9A",54,30.0,"N"],[39,"Year 9","9A",54,43.5,"N"],[40,"Year 9","9A",54,41.0,"N"],[41,"Year 9","9A",54,43.5,"Y"],[42,"Year 9","9C",54,43.0,"Y"],[43,"Year 9","9A",54,35.5,"N"],[44,"Year 9","9D",54,39.0,"N"],[45,"Year 9","9D",54,44.0,"Y"],[46,"Year 9","9C",54,19.0,"Y"],[47,"Year 9","9D",46.5,35.0,"N"],[48,"Year 10","10D",30,15.5,"Y"],[49,"Year 10","10C",54,47.0,"N"],[50,"Year 10","10A",54,38.0,"N"],[51,"Year 10","REFLECT",24,17.0,"N"],[52,"Year 10","10A",42.5,36.0,"Y"],[53,"Year 10","10D",54,40.0,"N"],[54,"Year 10","10C",54,31.0,"Y"],[55,"Year 10","10C",54,47.5,"Y"],[56,"Year 10","10B",54,41.5,"N"],[57,"Year 10","10D",54,35.0,"Y"],[58,"Year 10","10C",54,50.0,"N"],[59,"Year 10","10A",42.5,37.0,"N"],[60,"Year 10","10C",54,28.5,"Y"],[61,"Year 10","10D",30,20.5,"N"],[62,"Year 10","10B",54,36.0,"Y"],[63,"Year 11","11E",54,42.0,"Y"],[64,"Year 11","11B",54,46.0,"N"],[65,"Year 11","11A",54,38.5,"N"],[66,"Year 11","11C",54,47.5,"Y"],[67,"Year 11","11D",30,23.5,"N"],[68,"Year 11","11D",54,44.5,"N"],[69,"Year 11","11E",54,39.0,"N"],[70,"Year 11","11F",54,41.0,"N"],[71,"Year 11","11B",54,43.5,"N"],[72,"Year 11","11F",54,31.5,"Y"],[73,"Year 11","11D",54,29.0,"Y"],[74,"Year 11","11A",54,37.0,"Y"],[75,"Year 11","11E",54,32.0,"Y"],[76,"Year 11","11F",54,43.5,"Y"],[77,"Year 11","11C",54,44.5,"Y"],[78,"Year 11","11C",54,39.0,"N"],[79,"Year 11","11A",54,39.5,"N"],[80,"Year 11","11D",54,46.5,"Y"],[81,"Year 11","11E",54,30.5,"N"],[82,"Year 11","11D",54,46.5,"N"],[83,"Year 11","11C",54,40.0,"N"],[84,"Year 11","11E",54,39.0,"Y"],[85,"Year 11","11D",54,40.5,"N"],[86,"Year 11","REFLECT",54,45.0,"N"],[87,"Year 11","11D",54,34.5,"Y"],[88,"Year 11","11C",54,42.5,"Y"],[89,"Year 11","11D",54,35.0,"Y"],[90,"Year 11","11B",54,41.0,"Y"],[91,"Year 11","11D",36,27.5,"Y"],[92,"Year 11","11E",54,37.0,"Y"],[93,"Year 11","11D",54,25.5,"Y"],[94,"Year 11","11F",54,18.0,"Y"],[95,"Year 11","11D",42.5,18.0,"N"],[96,"Year 11","11B",54,44.0,"Y"],[97,"Year 12","12T2",54,42.5,"Y"],[98,"Year 12","12T1",54,39.0,"Y"],[99,"Year 12","12T1",54,44.0,"Y"],[100,"Year 12","12T1",54,30.5,"Y"],[101,"Year 12","12T1",54,20.5,"N"],[102,"Year 12","12T1",54,44.5,"N"],[103,"Year 12","12T2",54,39.0,"N"],[104,"Year 12","12T1",54,40.5,"Y"],[105,"Year 12","12T2",54,23.0,"Y"],[106,"Year 12","12T2",54,32.0,"Y"],[107,"Year 12","12T2",54,42.5,"Y"],[108,"Year 12","12T2",54,41.0,"N"],[109,"Year 12","12T2",54,41.0,"N"],[110,"Year 13","13T1",54,34.5,"Y"],[111,"Year 13","13T2",54,22.0,"N"],[112,"Year 13","13T1",28.5,11.0,"N"],[113,"Year 13","13T2",42.5,23.5,"Y"],[114,"Year 13","13T1",54,29.5,"Y"],[115,"Year 13","13T2",54,38.5,"N"],[116,"Year 13","13T1",36,31.5,"Y"],[117,"Year 13","13T2",54,50.0,"N"],[118,"Year 13","13T2",54,41.0,"Y"],[119,"Year 13","13T1",54,45.0,"N"],[120,"Year 13","13T1",54,50.0,"Y"],[121,"Year 13","13T2",54,42.0,"N"],[122,"Year 13","13T1",54,20.5,"N"],[123,"Year 13","13T1",54,19.5,"Y"],[124,"Year 13","13T1",54,44.5,"Y"],[125,"Year 13","13T2",54,45.5,"Y"],[126,"Year 9","9A",0,0,"N"],[127,"Year 11","11B",0,0,"Y"]];
+const KEY = 'rainfordAttendanceMilestones.v5';
+const API = (typeof google!=='undefined' && google.script && google.script.run) ? google.script.run : null; // set when running inside Apps Script
+const ROLE_NAMES = {vp:'Vice Principal', ll:'Learning Leader', pl:'Pastoral Leader', tutor:'Tutor'};
+const isPastoral = r => r==='ll' || r==='pl';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const DEFAULT_REWARDS = [{name:'Postcard home', from:10},{name:'Positive phone call home', from:10},{name:'Canteen voucher', from:30},{name:'Prize draw entry', from:50},{name:'Hot chocolate with the Head', from:90}];
 const MILESTONES = [10,20,30,40,50,60,70,80,90,95];
 const TITLES = ['Mr','Mrs','Miss','Ms','Mr','Mrs'];
 const TSUR = ['Ashworth','Bennett','Carroll','Dunne','Ellison','Fletcher','Gallagher','Hesketh','Ince','Jennings','Kenyon','Lyon','Marsh','Naylor','Owens','Pickavance','Quinn','Rainey','Sefton','Tomlinson','Upton','Vose','Webster','Yates','Barton','Crompton','Dixon','Eccles','Forshaw','Gaskell'];
 function hashStr(s){ let h=7; for(const c of s) h=(h*31+c.charCodeAt(0))>>>0; return h; }
-const tutorName = code => { const h = hashStr(code); return TITLES[h%TITLES.length]+' '+TSUR[(h>>>3)%TSUR.length]; };
-const pastoralName = y => (y||'No year')+' Pastoral';
+const tutorName = code => API ? ((state && state.tutors && state.tutors[code]) || 'Tutor not set up yet') : mockTutorName(code);
+const mockTutorName = code => { const h = hashStr(code); return TITLES[h%TITLES.length]+' '+TSUR[(h>>>3)%TSUR.length]; };
+const pastoralName = y => (y||'No year')+' Pastoral'; // only used for old saved logs
 const isFormGroup = code => code && !/REFLECT|^CC/i.test(code);
-let user = null; // {role:'vp'|'pastoral'|'tutor', year, tutor, name}
+let user = null; // {role:'vp'|'ll'|'pl'|'tutor', year, tutor, name, email}
 const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
 
 /* ---------- dates ---------- */
@@ -577,7 +649,14 @@ const SUBJ = {
 const CYCLE = ['Ma','En','Sc','Hi','Ma','Pe','En','Sc','Gg','Cp','Fr','Ma','Re','Sc','En','Ar','Dt','Mu','Sc','En','Ma','Fr','Pe','Hi','Gg'];
 const SIXTH = ['Chemistry','Biology','Psychology','Maths','English Lit','History','Business','Sociology'];
 function yearNum(y){ const m=String(y).match(/\d+/); return m?+m[0]:0; }
+let TT = null, ROOMS = null; // real timetable and rooms, when Apps Script provides them
+const hasTimetable = () => !API || !!TT;
 function lessonFor(s, day, pk){
+  if(TT){
+    if(pk==='Break'||pk==='Lunch') return {what:pk, room:'Canteen or yard', cls:''};
+    const l = ((TT[s.id]||{})[day]||{})[pk];
+    return l ? {what:l.what||'', room:l.room||'', cls:l.cls||''} : {what:'', room:'', cls:''};
+  }
   const y = yearNum(s.year), id = s.id;
   if(pk==='Break'||pk==='Lunch') return {what:pk==='Break'?'Break':'Lunch', room:'Canteen or yard', cls:''};
   if(/REFLECT/i.test(s.tutor)) return {what:'Reflect', room:'Reflect room', cls:'Reflect'};
@@ -604,6 +683,7 @@ function clockNow(){
 }
 const toMin = t => { const [h,m]=t.split(':').map(Number); return h*60+m; };
 function whereNow(s){
+  if(!hasTimetable()) return null;
   const c = clockNow();
   if(c.day>=1 && c.day<=5 && !(state.settings.clock!=='demo' && closedOn(TODAY))){
     const per = PERIODS.find(p => c.mins>=toMin(p.s) && c.mins<toMin(p.e));
@@ -624,6 +704,8 @@ const ZONES = {N:'North',E:'East',S:'South',W:'West',C:'College'}, ZORDER = 'NES
 const FLOORS = ['Ground floor','First floor','Second floor'], FSHORT = ['ground','1st','2nd'];
 function roomLoc(room){
   const r = String(room||''); let m;
+  if(ROOMS && ROOMS[r]) return ROOMS[r];
+  if(ROOMS) return {z:'C', f:0};
   if(m = r.match(/^([MES])(\d)$/)) return {z:m[1]==='M'?'N':m[1], f:+m[2]<=3?0:1};
   if(/^[HG]\d$/.test(r)) return {z:'W', f:1};
   if(/^L\d$/.test(r)) return {z:'W', f:2};
@@ -649,8 +731,8 @@ function seed(){
   const today = TODAY, prevDate = addDays(today,-14);
   const cur = {}, prev = {};
   const rnd = mulberry(42);
-  RAW.forEach(([id,year,tutor,P,A]) => {
-    const s = {id, name:fakeName(id), year:year||'', tutor:tutor||'', P:+P, A:+A};
+  RAW.forEach(([id,year,tutor,P,A,da]) => {
+    const s = {id, name:fakeName(id), year:year||'', tutor:tutor||'', P:+P, A:+A, da: da==='Y'||da===true||da===1};
     cur[id] = s;
     if(P >= 20){
       const gained = Math.min(A, 10, Math.round((3 + rnd()*7)*2)/2);
@@ -658,10 +740,10 @@ function seed(){
     } else prev[id] = {...s};
   });
   state = {
-    settings:{tmode:'pct', tPct:90, tDays:10, tNear:5, tutorDays:5, offDrop:1, ciDays:10, lastDay:'2027-07-16', closed:exampleClosed(), useManual:false, manualDays:135,
-      me:'Mr Harvey', clock:'live', clockDay:'3', clockTime:'10:15'},
+    settings:{tmode:'pct', tPct:90, tDays:10, tNear:5, tutorDays:5, offDrop:1, ciDays:3, tGoal:90, lastDay:'2027-07-16', closed:exampleClosed(), useManual:false, manualDays:135,
+      rewards:DEFAULT_REWARDS.map(r=>({...r})), clock:'live', clockDay:'3', clockTime:'10:15'},
     uploads:[],
-    firstListed:{}, log:[]
+    firstListed:{}, log:[], targets:{}, staff:mockStaff()
   };
   // daily uploads between the two snapshots, so streaks and off-track work
   const days = []; for(let d=addDays(prevDate,1); d<=today; d=addDays(d,1)){ const w=parseISO(d).getDay(); if(w>0&&w<6) days.push(d); }
@@ -681,7 +763,7 @@ function seed(){
   const newIds = new Set(ids.filter(id => id%13===4 || id%17===9));
   ids.forEach(id => { state.firstListed[id] = newIds.has(id) ? today : addDays(prevDate,-21); });
   // history for the rest: goals, some rewards, varied check-ins
-  const staffPick = () => pastoralName(cur[id_].year); let id_;
+  const staffPick = k => { const t = state.staff.filter(x => isPastoral(x.role) && x.year===cur[id_].year); return t.length ? t[(k||0)%t.length].name : 'Vice Principal'; }; let id_;
   const sdays = schoolDaysBack(today, 25); // list of past school days, newest first
   ids.forEach((id,i) => {
     id_ = id;
@@ -693,7 +775,7 @@ function seed(){
       const m = early[early.length-1];
       const d0 = sdays[24 - (i%4)];
       state.log.push({sid:id, type:'goal', m, date:d0, staff:staffPick(i+2)});
-      state.log.push({sid:id, type:'reward', m, date:(i%2? sdays[18 - (i%3)] : sdays[3 + (i%4)]), staff:staffPick(i+1)});
+      state.log.push({sid:id, type:'reward', m, reward:state.settings.rewards.filter(r=>r.from<=m)[i%2].name, date:(i%2? sdays[18 - (i%3)] : sdays[3 + (i%4)]), staff:staffPick(i+1)});
     }
     const rewarded = new Set(state.log.filter(l=>l.sid===id&&l.type==='reward').map(l=>l.m));
     const lastRw = state.log.filter(l=>l.sid===id&&l.type==='reward').map(l=>sdays.indexOf(l.date)).sort((a,b)=>a-b)[0];
@@ -701,9 +783,13 @@ function seed(){
     if(!m) return;
     let gAgo = (i%2) ? 12 + (i%4) : 2 + (i%7); if(lastRw!=null) gAgo = Math.min(gAgo, lastRw); const gd = sdays[gAgo];
     state.log.push({sid:id, type:'goal', m, date:gd, staff:staffPick(i)});
-    const ago = [9,7,3,12,1,5,14,2,8,11][i%10];
-    if(ago < 10 && ago < gAgo) state.log.push({sid:id, type:'checkin', date:sdays[ago], staff:staffPick(i+3)});
+    const ago = [0,1,2,1,0,2,6,1,4,0][i%10];
+    // some year teams keep up, others lag behind, so the VP's pastoral summary has something to show
+    const lagging = ['Year 8','Year 10'].includes(cur[id].year);
+    if(ago < 10 && ago < gAgo && !(lagging && i%3)) state.log.push({sid:id, type:'checkin', date:sdays[ago], staff:staffPick(i+3)});
   });
+  // target group: DA students the VP has picked out, set up three weeks ago
+  ids.forEach((id,i) => { const c = cur[id]; if(c.da && i%3!==2 && c.P>0){ const now = c.A/c.P*100, d = [-2.5,1.5,3,-1,4.5,0,2,-3.5,6,1][i%10]; state.targets[id] = {date:sdays[15], by:'Vice Principal', start:Math.round((now-d)*10)/10}; } });
   // tutor chats for some students close to a milestone
   ids.forEach((id,i) => {
     const s = cur[id]; if(!isFormGroup(s.tutor) || i%3!==1) return;
@@ -716,16 +802,64 @@ function seed(){
     const f = info(s);
     if(f.tutorWin && !f.tutorChat) state.log.push({sid:id, type:'tutoraway', m:f.target, date:weekStart(today), staff:tutorName(s.tutor)});
   });
+  state.log.forEach(l => l.id = l.id || uid());
   state.log.sort((a,b)=>a.date<b.date?-1:1);
   save();
 }
+function mockStaff(){
+  const years = ['Year 7','Year 8','Year 9','Year 10','Year 11','Year 12','Year 13'];
+  const out = [{email:'vp@rainford.example', name:'Mr Gaskell', role:'vp', year:''}];
+  years.forEach((y,i) => {
+    out.push({email:'ll'+yearNum(y)+'@rainford.example', name:TITLES[i%6]+' '+['Okafor','Brennan','Whitfield','Haydock','Sutcliffe','Ormerod','Pennington'][i], role:'ll', year:y});
+    out.push({email:'pl'+yearNum(y)+'@rainford.example', name:TITLES[(i+3)%6]+' '+['Aspinall','Draper','Kershaw','Lunt','Moss','Rigby','Tyrer'][i], role:'pl', year:y});
+  });
+  return out;
+}
 function mulberry(a){ return () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 function load(){
+  if(API) return bootFromServer();
   try{ const s = localStorage.getItem(KEY); if(s) state = JSON.parse(s); else seed(); }catch(e){ seed(); }
-  if(state.settings.tNear==null) state.settings.tNear = 5;
   try{ user = JSON.parse(localStorage.getItem(KEY+'.user')||'null'); }catch(e){ user = null; }
+  renderAll();
 }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function save(){ if(API) return; try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ---------- data layer: the browser in the mock-up, the Google Sheet in Apps Script ---------- */
+function serverError(e){ toast('⚠ Not saved: ' + (e && e.message ? e.message : e)); }
+function call(fn, ...args){ return new Promise((res, rej) => API.withSuccessHandler(res).withFailureHandler(e => { serverError(e); rej(e); })[fn](...args)); }
+function addLog(entry){
+  entry.id = entry.id || uid();
+  state.log.push(entry); save();
+  if(API) call('addLog', entry).catch(() => { const i = state.log.indexOf(entry); if(i>=0) state.log.splice(i,1); renderAll(); });
+  return entry;
+}
+function removeLog(entry){
+  const i = state.log.indexOf(entry); if(i>=0) state.log.splice(i,1); save();
+  if(API && entry.id) call('removeLog', entry.id);
+}
+function saveSettings(){ save(); if(API) call('saveSettings', state.settings); }
+function setTarget(sid, on){
+  const s = curUpload().rows[sid];
+  if(on) state.targets[sid] = {date:TODAY, by:user.name, start: s && s.P>0 ? Math.round(s.A/s.P*1000)/10 : null};
+  else delete state.targets[sid];
+  save(); if(API) call('setTarget', String(sid), on, on ? state.targets[sid].start : null);
+}
+function saveStaff(){ save(); if(API) call('saveStaff', state.staff); }
+function bootFromServer(){
+  $('loading').classList.add('on');
+  API.withSuccessHandler(b => {
+    $('loading').classList.remove('on');
+    if(b.error){ $('loading').classList.add('on'); $('loadingMsg').textContent = b.error; return; }
+    // rebuild each day's rows from today's student details plus the compact history
+    const info0 = {}; (b.current||[]).forEach(s => info0[s.id] = s);
+    const uploads = (b.snaps||[]).map(sn => { const rows = {}; Object.keys(sn.d).forEach(id => { const c = info0[id]; if(c) rows[id] = {...c, P:sn.d[id][0], A:sn.d[id][1]}; }); return {date:sn.date, rows}; });
+    state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], targets:b.targets||{}, staff:b.staff||[], tutors:b.tutors||{}, lastImport:b.lastImport||''};
+    TT = b.timetable || null; ROOMS = b.rooms || null; user = b.user;
+    if(!state.uploads.length){ $('loading').classList.add('on'); $('loadingMsg').textContent = 'No attendance data yet. Ask the VP to run the first import.'; return; }
+    if(user.role==='tutor' && !user.tutor){ showFormPicker(b.forms||[]); return; }
+    renderAll();
+  }).withFailureHandler(e => { $('loadingMsg').textContent = 'Couldn\'t load: ' + (e.message||e); }).getBootstrap();
+}
 
 /* ---------- calendar maths ---------- */
 const closedOn = s => !!state.settings.closed[s];
@@ -797,18 +931,22 @@ function info(s){
   const tutorChat = target!=null ? logs.filter(l=>l.type==='tutor' && l.m===target).pop() || null : null;
   const tutorAway = !tutorChat ? logs.filter(l=>l.type==='tutoraway' && l.date >= weekStart(TODAY)).pop() || null : null;
   const first = state.firstListed[s.id];
+  const tg = state.targets[s.id] || null;
+  const tGoal = +state.settings.tGoal || 90;
   const isNew = !ever && inScope;
   let list = null;
   if(rewardDue) list = 'reward';
   else if(isNew) list = 'new';
-  else if(inScope || activeGoal) list = 'check';
+  else if(inScope || activeGoal || (tg && p < tGoal)) list = 'check';
+  // declining: attendance has dropped since a pastoral leader last saw them
   let atGoal = null, offTrack = false, drop = 0;
-  if(activeGoal && !rewardDue){ const g = uploadOn(activeGoal.date).rows[s.id]; if(g && g.P>0){ atGoal = g.A/g.P*100; drop = atGoal - p; offTrack = drop > (+state.settings.offDrop||1) - 1e-9; } }
+  if(last && !rewardDue && last.date < dataDate()){ const g = uploadOn(last.date).rows[s.id]; if(g && g.P>0){ atGoal = g.A/g.P*100; drop = atGoal - p; offTrack = drop > (+state.settings.offDrop||1) - 1e-9; } }
+  const tStatus = !tg ? null : p >= tGoal - 1e-9 ? 'done' : tg.start==null ? 'same' : p > tg.start + 0.05 ? 'up' : p < tg.start - 0.05 ? 'down' : 'same';
   const checkDue = list==='check' && (offTrack || !activeGoal || sinceContact==null || sinceContact >= +state.settings.ciDays);
   const streak = streakDays(s.id);
   const prev = prevUpload() && prevUpload().rows[s.id];
   const change = prev && prev.P>0 && p!=null ? p - prev.A/prev.P*100 : null;
-  return {p, logs, rewarded, activeGoal, nextM, target, need, best, reachable, byDate, rewardDue, last, sinceContact, inScope, first, isNew, list, checkDue, change, atGoal, offTrack, drop, streak, ever, nextNeed, tutorWin, tutorChat, tutorAway,
+  return {p, logs, rewarded, activeGoal, nextM, target, need, best, reachable, byDate, rewardDue, last, sinceContact, inScope, first, isNew, list, checkDue, change, atGoal, offTrack, drop, streak, tg, tStatus, ever, nextNeed, tutorWin, tutorChat, tutorAway,
     need90: daysNeeded(s.A,s.P,.9), need95: daysNeeded(s.A,s.P,.95), L};
 }
 
@@ -819,15 +957,15 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 function allStudents(){ return Object.values(curUpload().rows).filter(s => s.P>0); }
 function students(){
   const a = allStudents();
-  if(user && user.role==='pastoral') return a.filter(s => (s.year||'No year')===user.year);
+  if(user && isPastoral(user.role)) return a.filter(s => (s.year||'No year')===user.year);
   if(user && user.role==='tutor') return a.filter(s => s.tutor===user.tutor);
   return a;
 }
 
 const LIST_HINT = {
-  new:'Not met yet. Set a goal and they move to check-in.',
-  reward:'Reached their goal. Give the reward and tap to log it.',
-  check:'Off track means attendance has dropped since their goal was set. Due means no contact for {n} school days.'
+  new:'On the list for the first time and not met yet. Meet them and set a goal, and they move to check-in.',
+  reward:'Reached the milestone they were set. Pick the reward you gave to log it. Each milestone is rewarded once.',
+  check:'Seen before. Due means not seen for {n} school days. Declining means attendance has dropped since they were last seen.'
 };
 
 function goalLine(s,f){
@@ -846,7 +984,7 @@ function goalShort(f){
 }
 const streakTxt = f => f.streak.days>=3 ? `<span class="streak">In every day: ${String(f.streak.days).replace('.5','½')}${f.streak.capped?'+':''} days</span>` : '';
 function statusShort(f){
-  if(f.offTrack) return `<span class="st bad">Off track ▼${f.drop.toFixed(1)}</span>`;
+  if(f.offTrack) return `<span class="st bad">Declining ▼${f.drop.toFixed(1)}</span>`;
   if(!f.activeGoal) return `<span class="st warn">Needs goal</span>`;
   if(f.checkDue) return `<span class="st warn">Due</span>`;
   return `<span class="st">Seen ${f.sinceContact===0?'today':f.sinceContact+'d ago'}</span>`;
@@ -868,7 +1006,7 @@ function renderLists(){
   const onList = all.filter(x=>x.f.list).length;
   $('databar').textContent = `${daysLeft()} school days left · data from ${nice(dataDate())}`;
   $('listhint').textContent = LIST_HINT[curList].replace('{n}', state.settings.ciDays);
-  const nf = ['fYear','fTutor','fBand','fBlock'].filter(id=>$(id).value && $(id).style.display!=='none').length + ($('fDue').checked&&curList==='check'?1:0);
+  const nf = ['fYear','fTutor','fBand','fBlock','fGroup'].filter(id=>$(id).value && $(id).style.display!=='none').length + ($('fDue').checked&&curList==='check'?1:0);
   $('fBtn').textContent = nf ? 'Filter ('+nf+')' : 'Filter';
   $('dueWrap').style.display = curList==='check' ? '' : 'none';
 
@@ -885,6 +1023,10 @@ function renderLists(){
   if(ft) rows = rows.filter(x => x.s.tutor===ft);
   if(fb){ const [lo,hi] = fb.split('-').map(Number); rows = rows.filter(x => x.f.p>=lo && x.f.p<hi); }
   if(curList==='check' && fd) rows = rows.filter(x => x.f.checkDue);
+  const fg = $('fGroup').value; if(fg==='da') rows = rows.filter(x => x.s.da); if(fg==='target') rows = rows.filter(x => x.f.tg);
+  $('fBlock').style.display = hasTimetable() ? '' : 'none';
+  if(!hasTimetable() && $('fSort').value==='loc') $('fSort').value = 'days';
+  $('fSort').querySelector('option[value=loc]').hidden = !hasTimetable();
   rows.forEach(x => { x.w = whereNow(x.s); x.loc = x.w ? roomLoc(x.w.room) : {z:'C',f:0}; });
   const fbk = $('fBlock').value; if(fbk) rows = rows.filter(x => x.loc.z===fbk);
   const sort = $('fSort').value;
@@ -902,11 +1044,11 @@ function renderLists(){
   $('cards').innerHTML = rows.map(({s,f,w,loc}) => {
     let head = '';
     if(sort==='loc'){ const g = loc.z+loc.f; if(g!==lastG){ lastG = g; const n = rows.filter(x=>x.loc.z+x.loc.f===g).length; head = `<div class="grouphead">${ZONES[loc.z]} block · ${FLOORS[loc.f]} <span>${n}</span></div>`; } }
-    return head + `<button class="card${s.id===selId?' sel':''}" data-id="${s.id}">
+    return head + `<button class="card${String(s.id)===String(selId)?' sel':''}" data-id="${esc(s.id)}">
       <div class="nm">${esc(s.name)}</div><div class="pct">${fmtPct(f.p)}</div>
-      <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)} ${streakTxt(f)}</div>${curList==='check'?statusShort(f):'<span></span>'}
+      <div class="meta">${f.tg?'<span class="star" title="Target group">★</span> ':''}${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}</div>${curList==='check'?statusShort(f):'<span></span>'}
       <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}</div>
-      <div class="where">${PIN}<span>${w ? (w.now ? '<b>'+esc(w.room)+'</b> now · '+esc(w.what) : 'Next: <b>'+esc(w.room)+'</b> · '+DAYNAME[w.day].slice(0,3)+' '+w.per) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>
+      ${hasTimetable() ? `<div class="where">${PIN}<span>${w ? (w.now ? '<b>'+esc(w.room)+'</b> now · '+esc(w.what) : 'Next: <b>'+esc(w.room)+'</b> · '+DAYNAME[w.day].slice(0,3)+' '+w.per) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
     </button>`; }).join('');
 }
 function changeTag(c){
@@ -925,16 +1067,17 @@ function openStudent(id){
   selId = id; pickGoal = null; showPick = false;
   renderDetail();
   $('sheet').classList.add('on'); $('shade').classList.add('on'); $('sheet').setAttribute('aria-hidden','false');
-  document.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', +c.dataset.id===id));
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', c.dataset.id===String(id)));
 }
 function closeStudent(){ selId=null; $('sheet').classList.remove('on'); $('shade').classList.remove('on'); $('sheet').setAttribute('aria-hidden','true'); document.querySelectorAll('.card.sel').forEach(c=>c.classList.remove('sel')); }
 
+function rewardsFor(m){ const r = (state.settings.rewards||[]).filter(x => (+x.from||0) <= m); return r.length ? r : [{name:'Reward given'}]; }
 function renderDetail(){
   if(selId==null) return;
   const s = curUpload().rows[selId]; if(!s){ closeStudent(); return; }
   const f = info(s);
   $('dName').textContent = s.name;
-  $('dMeta').innerHTML = `${esc(s.year||'No year')} · ${esc(s.tutor)}`;
+  $('dMeta').innerHTML = `${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' · <span class="datag">DA</span>':''}${f.tg?' · <span class="star">★</span> Target group':''}`;
   const ladder = MILESTONES.map(m => {
     let c = 'rung';
     if(f.rewarded.has(m)) c += ' rewarded';
@@ -964,36 +1107,39 @@ function renderDetail(){
     <div class="hero"><div class="hp">${fmtPct(f.p)}</div><div class="cellmeta">${String(s.A).replace('.5','½')} of ${String(s.P).replace('.5','½')} days</div></div>
     <div class="goalbox">${f.activeGoal&&!f.rewardDue?'<small>Goal</small>':f.rewardDue?'':'<small>Next milestone</small>'}${goalTxt}</div>
     <div class="ladder">${ladder}</div>
-    ${f.offTrack ? `<div class="msg bad" style="margin:0 0 8px">Off track: down ${f.drop.toFixed(1)} points since their goal was set on ${nice(f.activeGoal.date)} (was ${fmtPct(f.atGoal)}).</div>` : ''}
+    ${f.offTrack ? `<div class="msg bad" style="margin:0 0 8px">Declining: down ${f.drop.toFixed(1)} points since they were last seen on ${nice(f.last.date)} (was ${fmtPct(f.atGoal)}).</div>` : ''}
+    ${f.tg ? `<div class="tgline"><span class="star">★</span> Target group since ${nice(f.tg.date)}: ${f.tg.start!=null?fmtPct(f.tg.start)+' → ':''}<b>${fmtPct(f.p)}</b> ${f.tStatus==='done'?'<span class="tag ok">Completed</span>':f.tStatus==='up'?'<span class="tag ok">Improving</span>':f.tStatus==='down'?'<span class="tag bad">Declining</span>':'<span class="tag grey">No change</span>'}</div>` : ''}
     <div class="minirow"><span>90%: <b>${n90}</b></span><span>Best by July: <b>${fmtPct(f.best)}</b></span>${f.streak.days>=1?`<span>In every day: <b>${String(f.streak.days).replace('.5','½')}${f.streak.capped?'+':''} days</b></span>`:''}</div>
 
     <div class="actions">
       <button class="act ${todayLogs('checkin').length?'done':''}" data-act="checkin"><span class="dot">✓</span><span>Check-in completed<span class="sub">${subOf(ci,'Not yet')}</span></span></button>
       <button class="act ${gl&&gl.date===TODAY?'done':''}" data-act="goal" ${pickGoal==null?'disabled':''}><span class="dot">✓</span><span>Goal set${pickGoal?' · '+pickGoal+'%':''}<span class="sub">${gl? 'Current goal '+gl.m+'%' : 'No goal yet'}</span></span></button>
       ${showPick ? `<div class="goalpick">${goalOptions}</div>` : (pickGoal!=null ? `<button class="linkbtn" id="pickToggle">Choose a different milestone</button>` : '')}
-      <button class="act reward ${rw&&rw.date===TODAY?'done':''}" data-act="reward" ${f.rewardDue?'':'disabled'}><span class="dot">★</span><span>Reward given${f.rewardDue?' · '+f.activeGoal.m+'%':''}<span class="sub">${f.rewardDue? 'Due now' : 'Not due yet'}</span></span></button>
+      ${f.rewardDue ? `<div class="rewardbox"><div class="rbtitle">★ Reward due for ${f.activeGoal.m}%. Tap the reward you gave:</div><div class="rchips">${rewardsFor(f.activeGoal.m).map(r => `<button data-rw="${esc(r.name)}">${esc(r.name)}</button>`).join('')}</div></div>`
+        : `<button class="act reward ${rw&&rw.date===TODAY?'done':''}" disabled><span class="dot">★</span><span>Reward given<span class="sub">${rw ? 'Last: '+rw.m+'%'+(rw.reward?' · '+esc(rw.reward):'')+', '+nice(rw.date) : 'Not due yet'}</span></span></button>`}
     </div>
 
-    <p class="whereline">${PIN}<span>${w ? (w.now ? 'Now in <b>'+esc(w.room)+'</b> ('+locLabel(w.room)+') · '+esc(w.what) : 'Next: <b>'+esc(w.room)+'</b> ('+locLabel(w.room)+'), '+DAYNAME[w.day].slice(0,3)+' '+w.per) : 'No timetable'}</span></p>
+    ${user.role==='vp' ? `<button class="tgbtn${f.tg?' on':''}" id="tgToggle">${f.tg ? '★ In the target group (tap to remove)' : '☆ Add to the target group'}</button>` : ''}
+    ${hasTimetable() ? `<p class="whereline">${PIN}<span>${w ? (w.now ? 'Now in <b>'+esc(w.room)+'</b> ('+locLabel(w.room)+') · '+esc(w.what) : 'Next: <b>'+esc(w.room)+'</b> ('+locLabel(w.room)+'), '+DAYNAME[w.day].slice(0,3)+' '+w.per) : 'No timetable'}</span></p>` : ''}
 
     <details class="plain"><summary>Add a note</summary><textarea id="note" rows="2" placeholder="Saved with your next tap"></textarea></details>
-    <details class="plain"><summary>${DAYNAME[dayIdx]}'s timetable</summary><table class="daytt">${tt}</table></details>
+    ${hasTimetable() ? `<details class="plain"><summary>${DAYNAME[dayIdx]}'s timetable</summary><table class="daytt">${tt}</table></details>` : ''}
     <details class="plain"><summary>History (${f.logs.length})</summary>
-    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%':l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':'<b>Reward given: '+l.m+'%</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
+    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%':l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':'<b>Reward given: '+l.m+'%'+(l.reward?' · '+esc(l.reward):'')+'</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
       <li><span class="d">${state.firstListed[s.id]?nice(state.firstListed[s.id]):''}</span><span class="cellmeta">First on the list</span></li></ul></details>
   `;
 }
 
 let lastAction = null, toastTimer = null;
-function record(type){
+function record(type, rewardName){
   const s = curUpload().rows[selId], f = info(s);
   const note = ($('note')||{}).value || '';
   const entry = {sid:s.id, type, date:TODAY, staff:user.name, t:Date.now()};
   if(note.trim()) entry.note = note.trim();
   if(type==='goal'){ if(pickGoal==null) return; entry.m = pickGoal; }
-  if(type==='reward'){ if(!f.rewardDue) return; entry.m = f.activeGoal.m; }
-  state.log.push(entry); lastAction = entry; save();
-  const label = type==='checkin'?'Check-in logged': type==='goal'?'Goal of '+entry.m+'% set':'Reward for '+entry.m+'% logged';
+  if(type==='reward'){ if(!f.rewardDue) return; entry.m = f.activeGoal.m; entry.reward = rewardName || ''; }
+  lastAction = addLog(entry);
+  const label = type==='checkin'?'Check-in logged': type==='goal'?'Goal of '+entry.m+'% set':(entry.reward||'Reward')+' given for '+entry.m+'%';
   toast(label+' for '+s.name.split(', ').reverse().join(' '));
   pickGoal = null; showPick = false;
   renderAll();
@@ -1012,7 +1158,7 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 3000);
 }
 $('undoBtn').onclick = () => {
-  if(lastAction){ const i = state.log.lastIndexOf(lastAction); if(i>=0) state.log.splice(i,1); lastAction=null; save(); renderAll(); }
+  if(lastAction){ removeLog(lastAction); lastAction=null; renderAll(); }
   $('toast').classList.remove('on');
 };
 
@@ -1027,10 +1173,14 @@ function renderMonitor(){
   const avg = a => a.length ? a.reduce((t,x)=>t+x,0)/a.length : null;
   const reached90 = all.filter(x=>x.f.ever && x.f.p>=90).length;
   const tWin = all.filter(x=>x.f.tutorWin && isFormGroup(x.s.tutor)), tDone = tWin.filter(x=>x.f.tutorChat||x.f.tutorAway).length;
+  const tgIn = all.filter(x=>x.f.tg && x.f.tStatus!=='done').length;
   $('mStats').innerHTML = [
-    [on.length,'on the list'],[all.filter(x=>x.f.offTrack).length,'off track'],[overdue.length,'check-ins due or overdue'],[all.filter(x=>x.f.list==='reward').length,'rewards due'],
-    [tWin.length? Math.round(tDone/tWin.length*100)+'%':'–','tutor list logged (spoken to or not in)']
+    [all.filter(x=>x.f.list==='new').length,'new to the list, not met yet'],[overdue.length,'check-ins due'],[all.filter(x=>x.f.offTrack).length,'declining since last seen'],[all.filter(x=>x.f.list==='reward').length,'rewards due'],
+    [tgIn,'target group still in the challenge'],[tWin.length? Math.round(tDone/tWin.length*100)+'%':'–','tutor list logged']
   ].map(([v,k])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+  renderPastoralMonitor(all); renderTargetMonitor(all);
+  const byType = {}; rewardsAll.filter(l => students().some(s=>s.id===l.sid)).forEach(l => { const k = l.reward || 'Not recorded'; byType[k] = (byType[k]||0)+1; });
+  $('mRewardTypes').innerHTML = `<thead><tr><th>Reward</th><th class="num">Given</th></tr></thead><tbody>` + (Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="num">${v}</td></tr>`).join('') || '<tr><td colspan="2" class="cellmeta">None yet.</td></tr>') + '</tbody>';
 
   const years = [...new Set(all.map(x=>x.s.year||'No year'))].sort((a,b)=>yearNum(a)-yearNum(b));
   $('mYear').innerHTML = `<thead><tr><th>Year</th><th class="num">On list</th><th class="num">Met</th><th class="num">Overdue</th><th class="num">Avg att.</th><th class="num">Avg change</th><th class="num">Rewards</th></tr></thead><tbody>` +
@@ -1070,6 +1220,49 @@ function renderMonitor(){
     overdue.map(({s,f}) => `<tr data-id="${s.id}" style="cursor:pointer"><td><b>${esc(s.name)}</b></td><td>${esc(s.tutor)}</td><td>${f.activeGoal? f.activeGoal.m+'%' : '<span class="tag warn">Needs a goal</span>'}</td><td class="num">${f.sinceContact??'–'}</td></tr>`).join('') + '</tbody>';
 }
 
+function renderPastoralMonitor(all){
+  $('plPanel').style.display = user.role==='vp' ? '' : 'none';
+  if(user.role!=='vp') return;
+  const years = [...new Set(all.map(x=>x.s.year||'No year'))].sort((a,b)=>yearNum(a)-yearNum(b));
+  const since = schoolDaysBack(TODAY, 10).pop();
+  const rows = years.map(y => {
+    const on = all.filter(x => (x.s.year||'No year')===y && x.f.list && x.f.list!=='reward');
+    const notMet = on.filter(x => !x.f.ever), due = on.filter(x => x.f.ever && x.f.checkDue), ok = on.filter(x => x.f.ever && !x.f.checkDue), dec = on.filter(x => x.f.offTrack);
+    const team = state.staff.filter(p => isPastoral(p.role) && p.year===y);
+    const acts = team.map(p => ({p, n: state.log.filter(l => l.staff===p.name && l.date>=since && ['checkin','goal','reward'].includes(l.type)).length}));
+    const behind = notMet.length + due.length;
+    return {y, on, notMet, due, ok, dec, team, acts, rate: on.length ? behind/on.length : 0};
+  }).filter(r => r.on.length).sort((a,b) => b.rate-a.rate || b.notMet.length-a.notMet.length);
+  const totNot = rows.reduce((t,r)=>t+r.notMet.length,0), totDue = rows.reduce((t,r)=>t+r.due.length,0), totOk = rows.reduce((t,r)=>t+r.ok.length,0);
+  $('plHint').innerHTML = `<b style="color:var(--ok)">${totOk}</b> seen recently · <b style="color:var(--warn)">${totDue}</b> due a check-in · <b style="color:var(--bad)">${totNot}</b> not met yet. Most behind first. Tap a year to see who's waiting.`;
+  const nm2 = x => esc(x.s.name.split(', ').reverse().join(' '));
+  $('plRows').innerHTML = rows.map(r => {
+    const n = r.on.length, seg = (a,c) => a.length ? `<i class="${c}" style="width:${a.length/n*100}%"></i>` : '';
+    const who = r.team.length ? r.team.map(p => esc(p.name)+' ('+(p.role==='ll'?'LL':'PL')+')').join(', ') : '<span style="color:var(--bad)">No leaders set: add them in Settings</span>';
+    const names = [r.notMet.length ? '<b>Not met yet:</b> '+r.notMet.map(nm2).join(', ') : '', r.due.length ? '<b>Due a check-in:</b> '+r.due.map(x=>nm2(x)+' ('+(x.f.sinceContact??'–')+'d)').join(', ') : '', r.dec.length ? '<b>Declining:</b> '+r.dec.map(nm2).join(', ') : '',
+      '<b>Logged in the last 10 school days:</b> '+(r.acts.length ? r.acts.map(a=>esc(a.p.name)+' '+a.n).join(' · ') : '–')].filter(Boolean).join('<br>');
+    return `<div class="frow"><div class="who"><b>${esc(r.y)}</b><span>${who}</span></div><div class="sbar">${seg(r.ok,'s')}${seg(r.due,'w')}${seg(r.notMet,'o')}</div><div class="res"><span style="color:${r.notMet.length?'var(--bad)':r.due.length?'var(--warn)':'var(--ok)'}">${r.notMet.length+r.due.length} waiting</span></div><div class="last">${r.dec.length? r.dec.length+' declining' : ''}</div><div class="names">${names}</div></div>`;
+  }).join('') || '<div class="empty">Nobody on the list.</div>';
+}
+function renderTargetMonitor(all){
+  const g = all.filter(x => x.f.tg);
+  const tGoal = +state.settings.tGoal || 90;
+  const cnt = k => g.filter(x=>x.f.tStatus===k).length;
+  const daOn = all.filter(x => x.s.da && x.f.list).length;
+  $('tgHint').textContent = g.length ? `Students the VP has picked out, usually DA. They complete the challenge at ${tGoal}%. Compared with their attendance when they joined the group.` : `Nobody in the target group yet. ${daOn} DA students are on the list: add them in Settings or from a student's panel.`;
+  $('tgStats').innerHTML = [[g.length,'in the target group'],[g.length-cnt('done'),'still in the challenge'],[cnt('done'),'completed'],[cnt('up'),'improving'],[cnt('down'),'declining']]
+    .map(([v,k],i)=>`<div class="stat${i===2?' gold':''}"><div class="v"${i===3?' style="color:var(--ok)"':i===4?' style="color:var(--bad)"':''}>${v}</div><div class="k">${k}</div></div>`).join('');
+  const f = $('tgFilter').value;
+  let rows = f==='in' ? g.filter(x=>x.f.tStatus!=='done') : f==='done' ? g.filter(x=>x.f.tStatus==='done') : g;
+  const order = {down:0, same:1, up:2, done:3};
+  rows.sort((a,b) => order[a.f.tStatus]-order[b.f.tStatus] || ((a.f.p-(a.f.tg.start??a.f.p)) - (b.f.p-(b.f.tg.start??b.f.p))));
+  const lab = {done:'<span class="tag ok">Completed</span>', up:'<span class="tag ok">Improving</span>', down:'<span class="tag bad">Declining</span>', same:'<span class="tag grey">No change</span>'};
+  $('tgRows').innerHTML = `<thead><tr><th>Student</th><th>Form</th><th class="num">Joined at</th><th class="num">Now</th><th class="num">Change</th><th>Status</th><th>Last seen</th></tr></thead><tbody>` +
+    (rows.map(({s,f}) => { const ch = f.tg.start!=null ? f.p - f.tg.start : null;
+      return `<tr data-id="${esc(s.id)}" style="cursor:pointer"><td><b>${esc(s.name)}</b>${s.da?' <span class="datag">DA</span>':''}</td><td>${esc(s.tutor)}</td><td class="num">${fmtPct(f.tg.start)}</td><td class="num">${fmtPct(f.p)}</td><td class="num">${ch==null?'–':changeTag(ch)}</td><td>${lab[f.tStatus]}</td><td>${f.last? nice(f.last.date) : '<span class="tag warn">Not met</span>'}</td></tr>`; }).join('') || '<tr><td colspan="7" class="cellmeta">Nobody here.</td></tr>') + '</tbody>';
+}
+$('tgFilter').onchange = () => renderTargetMonitor(students().map(s=>({s, f:info(s)})));
+$('plRows').onclick = e => { const r = e.target.closest('.frow'); if(r) r.classList.toggle('open'); };
 function renderTutorMonitor(all){
   const forms = {};
   all.filter(x => isFormGroup(x.s.tutor)).forEach(x => {
@@ -1119,28 +1312,31 @@ function printWeekly(){
   const rewards = logs.filter(l=>l.type==='reward');
   const streaks = all.filter(x=>x.f.list && x.f.streak.days>=3).sort((a,b)=>b.f.streak.days-a.f.streak.days).slice(0,8);
   const nm = id => esc((curUpload().rows[id]||{}).name||id);
-  const scope = user.role==='pastoral' ? user.year : 'All years';
+  const scope = isPastoral(user.role) ? user.year : 'All years';
+  const tg = all.filter(x=>x.f.tg), tgc = k => tg.filter(x=>x.f.tStatus===k).length;
   const kpi = (v,k) => `<div class="kpi"><b>${v}</b>${k}</div>`;
   $('printArea').innerHTML = `
     <h1>Attendance milestones: weekly summary</h1>
     <div class="sub">Rainford High · ${esc(scope)} · week ending ${niceY(TODAY)} · data up to ${niceY(dataDate())} · ${daysLeft()} school days left</div>
     <div class="kpis">
-      ${kpi(on.length,'students on the list')}${kpi(all.filter(x=>x.f.list==='new').length,'new, not met yet')}${kpi(off.length,'off track since goal set')}${kpi(all.filter(x=>x.f.list==='check'&&x.f.checkDue).length,'check-ins due or overdue')}
+      ${kpi(on.length,'students on the list')}${kpi(all.filter(x=>x.f.list==='new').length,'new, not met yet')}${kpi(off.length,'declining since last seen')}${kpi(all.filter(x=>x.f.list==='check'&&x.f.checkDue).length,'check-ins due or overdue')}
       ${kpi(c('checkin'),'check-ins this week')}${kpi(c('goal'),'goals set this week')}${kpi(rewards.length,'rewards given this week')}${kpi(tWin.length?Math.round(tDone/tWin.length*100)+'%':'–','tutor conversations logged ('+tDone+' of '+tWin.length+(tAway?', '+tAway+' not in':'')+')')}
     </div>
+    <h2>Target group</h2>
+    <p style="margin:0">${tg.length} in the group: <b>${tg.length-tgc('done')}</b> still in the challenge, <b>${tgc('done')}</b> completed, <b>${tgc('up')}</b> improving, <b>${tgc('down')}</b> declining.</p>
     <h2>By year group</h2>
-    <table><tr><th>Year</th><th class="n">On list</th><th class="n">Avg attendance</th><th class="n">Change (2 weeks)</th><th class="n">Off track</th><th class="n">Check-ins</th><th class="n">Goals</th><th class="n">Rewards</th><th class="n">Tutor chats</th></tr>
+    <table><tr><th>Year</th><th class="n">On list</th><th class="n">Avg attendance</th><th class="n">Change (2 weeks)</th><th class="n">Declining</th><th class="n">Check-ins</th><th class="n">Goals</th><th class="n">Rewards</th><th class="n">Tutor chats</th></tr>
     ${years.map(y => { const r = all.filter(x=>(x.s.year||'No year')===y), o = r.filter(x=>x.f.list), yl = logs.filter(l=>((curUpload().rows[l.sid]||{}).year||'No year')===y), ch = avg(o.map(x=>x.f.change).filter(v=>v!=null));
       return `<tr><td>${esc(y)}</td><td class="n">${o.length}</td><td class="n">${fmtPct(avg(o.map(x=>x.f.p)))}</td><td class="n">${ch==null?'–':(ch>=0?'+':'')+ch.toFixed(1)}</td><td class="n">${r.filter(x=>x.f.offTrack).length}</td><td class="n">${yl.filter(l=>l.type==='checkin').length}</td><td class="n">${yl.filter(l=>l.type==='goal').length}</td><td class="n">${yl.filter(l=>l.type==='reward').length}</td><td class="n">${yl.filter(l=>l.type==='tutor').length}</td></tr>`; }).join('')}
     </table>
     <div class="cols">
-      <div><h2>Off track (${off.length})</h2>
-        <table><tr><th>Student</th><th>Tutor</th><th class="n">Goal</th><th class="n">At goal</th><th class="n">Now</th></tr>
-        ${off.slice(0,12).map(x=>`<tr><td>${esc(x.s.name)}</td><td>${esc(x.s.tutor)}</td><td class="n">${x.f.activeGoal.m}%</td><td class="n">${fmtPct(x.f.atGoal)}</td><td class="n">${fmtPct(x.f.p)}</td></tr>`).join('') || '<tr><td colspan="5">Nobody.</td></tr>'}
+      <div><h2>Declining since last seen (${off.length})</h2>
+        <table><tr><th>Student</th><th>Tutor</th><th class="n">Last seen</th><th class="n">Then</th><th class="n">Now</th></tr>
+        ${off.slice(0,12).map(x=>`<tr><td>${esc(x.s.name)}</td><td>${esc(x.s.tutor)}</td><td class="n">${nice(x.f.last.date)}</td><td class="n">${fmtPct(x.f.atGoal)}</td><td class="n">${fmtPct(x.f.p)}</td></tr>`).join('') || '<tr><td colspan="5">Nobody.</td></tr>'}
         ${off.length>12?`<tr><td colspan="5">…and ${off.length-12} more</td></tr>`:''}</table></div>
       <div><h2>Rewards given this week (${rewards.length})</h2>
-        <table><tr><th>Student</th><th class="n">Milestone</th><th>Given by</th></tr>
-        ${rewards.slice(0,8).map(l=>`<tr><td>${nm(l.sid)}</td><td class="n">${l.m}%</td><td>${esc(l.staff)}</td></tr>`).join('') || '<tr><td colspan="3">None this week.</td></tr>'}</table>
+        <table><tr><th>Student</th><th class="n">Milestone</th><th>Reward</th></tr>
+        ${rewards.slice(0,8).map(l=>`<tr><td>${nm(l.sid)}</td><td class="n">${l.m}%</td><td>${esc(l.reward||'–')}</td></tr>`).join('') || '<tr><td colspan="3">None this week.</td></tr>'}</table>
         <h2>Longest runs of full attendance</h2>
         <table><tr><th>Student</th><th class="n">Days in a row</th></tr>
         ${streaks.map(x=>`<tr><td>${esc(x.s.name)}</td><td class="n">${x.f.streak.days}${x.f.streak.capped?'+':''}</td></tr>`).join('') || '<tr><td colspan="2">None yet.</td></tr>'}</table></div>
@@ -1155,17 +1351,27 @@ $('printWeek').onclick = printWeekly;
 function renderSettings(){
   const st = state.settings;
   document.querySelectorAll('input[name=tmode]').forEach(r => r.checked = r.value===st.tmode);
+  $('tGoal').value = st.tGoal ?? 90;
+  const daOn = students().filter(s => s.da && info(s).list).length, inG = Object.keys(state.targets).length;
+  $('tgSetHint').textContent = `${inG} ${inG===1?'student':'students'} in the target group. ${daOn} DA students are on the list right now.`;
+  $('rwTable').innerHTML = `<thead><tr><th>Reward</th><th>From</th><th></th></tr></thead><tbody>` + (st.rewards||[]).map((r,i) => `<tr><td><input type="text" data-rwi="${i}" data-k="name" value="${esc(r.name)}"></td><td><select data-rwi="${i}" data-k="from">${MILESTONES.map(m=>`<option value="${m}"${+r.from===m?' selected':''}>${m}%</option>`).join('')}</select></td><td><button class="btn small danger" data-rwdel="${i}">✕</button></td></tr>`).join('') + '</tbody>';
+  const years = [...new Set(allStudents().map(s=>s.year).filter(Boolean))].sort((a,b)=>yearNum(a)-yearNum(b));
+  $('staffTable').innerHTML = `<thead><tr><th>Name</th><th>School email</th><th>Role</th><th>Year</th><th></th></tr></thead><tbody>` + state.staff.map((p,i) => `<tr><td><input type="text" data-sti="${i}" data-k="name" value="${esc(p.name)}"></td><td><input type="text" data-sti="${i}" data-k="email" value="${esc(p.email)}"></td><td><select data-sti="${i}" data-k="role">${['vp','ll','pl'].map(r=>`<option value="${r}"${p.role===r?' selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></td><td><select data-sti="${i}" data-k="year" ${p.role==='vp'?'disabled':''}><option value=""></option>${years.map(y=>`<option${p.year===y?' selected':''}>${esc(y)}</option>`).join('')}</select></td><td><button class="btn small danger" data-stdel="${i}">✕</button></td></tr>`).join('') + '</tbody>';
+  $('importPanel').style.display = API ? '' : 'none';
+  if(API && state.lastImport) $('importMsg').textContent = 'Attendance is imported from Synergy every school morning. Last import: '+state.lastImport+'.';
+  $('mockPanel').style.display = API ? 'none' : '';
   $('tPct').value = st.tPct; $('tDays').value = st.tDays; $('tNear').value = st.tNear; $('tutorDays').value = st.tutorDays; $('offDrop').value = st.offDrop ?? 1; $('ciDays').value = st.ciDays;
   $('lastDay').value = st.lastDay; $('dataDate').value = dataDate();
   $('useManual').checked = st.useManual; $('manualDays').value = st.manualDays;
   $('daysLeft').textContent = daysLeft();
   $('closedCount').textContent = Object.keys(st.closed).filter(d => d>dataDate() && d<=st.lastDay).length;
+  $('calWarn').style.display = Object.keys(st.closed).length ? 'none' : '';
   const n = students().filter(s => info(s).inScope).length;
   const tw = students().filter(s => info(s).tutorWin).length;
   $('scopeMsg').textContent = `${n} of ${students().length} students meet this rule. ${tw} are on tutor lists.`;
   $('clockMode').value = st.clock; $('clockDay').value = st.clockDay; $('clockTime').value = st.clockTime;
   $('upDate').value = $('upDate').value || TODAY;
-  $('upHist').textContent = 'Uploads so far: ' + state.uploads.map(u => niceY(u.date)+' ('+Object.keys(u.rows).length+')').join(', ');
+  $('upHist').textContent = 'Latest data: ' + state.uploads.slice(-3).reverse().map(u => niceY(u.date)+' ('+Object.keys(u.rows).length+' students)').join(', ');
   // calendar
   const start = parseISO(addDays(dataDate(),0)); start.setDate(1);
   const end = parseISO(st.lastDay);
@@ -1209,10 +1415,11 @@ function importText(text, date){
     const idNum = /^\d+$/.test(c[0]) ? +c[0] : null;
     const id = idNum ?? c[0];
     if(P===0) zero++;
-    rows[id] = {id, name: idNum!=null ? fakeName(idNum) : c[0], year:c[1], tutor:c[2], P, A};
+    rows[id] = {id, name: idNum!=null && !API ? fakeName(idNum) : c[0], year:c[1], tutor:c[2], P, A, da: /^(y|yes|true|1|da)$/i.test(c[5]||'')};
   });
   const n = Object.keys(rows).length;
-  if(!n){ setMsg('bad','No students found. Check the columns are Student name, Year, Tutor, Days possible, Days present.'); return; }
+  if(!n){ setMsg('bad','No students found. Check the columns are Student name, Year, Tutor, Days possible, Days present, DA.'); return; }
+  if(API){ setMsg('info','Uploading…'); call('saveUpload', date, Object.values(rows)).then(() => { setMsg('ok', `✓ Uploaded ${n} students for ${niceY(date)}.`); bootFromServer(); }); return; }
   if(state.uploads.some(u=>u.date===date)) state.uploads = state.uploads.filter(u=>u.date!==date);
   state.uploads.push({date, rows}); state.uploads.sort((a,b)=>a.date<b.date?-1:1);
   let fresh = 0;
@@ -1225,15 +1432,16 @@ function setMsg(k,t){ const m=$('upMsg'); m.className='msg '+k; m.textContent=t;
 /* ---------- wiring ---------- */
 function renderAll(){
   if(!user){ showLogin(); return; }
-  $('meLabel').innerHTML = '<b>'+esc(user.name)+'</b>'+(user.role==='tutor'?' · '+esc(user.tutor):'');
-  const allowed = user.role==='vp' ? ['lists','monitor','settings'] : user.role==='pastoral' ? ['lists','monitor'] : ['tutor'];
+  $('meLabel').innerHTML = '<b>'+esc(user.name)+'</b>'+(user.role==='tutor'?' · '+esc(user.tutor): isPastoral(user.role)?' · '+esc(user.year):'');
+  $('signOut').style.display = API ? 'none' : '';
+  const allowed = user.role==='vp' ? ['lists','monitor','settings'] : isPastoral(user.role) ? ['lists','monitor'] : ['tutor'];
   document.querySelectorAll('#nav button').forEach(b => b.style.display = allowed.includes(b.dataset.s) ? '' : 'none');
   $('nav').classList.toggle('single', allowed.length===1);
   const curSec = document.querySelector('main section.on');
   if(!curSec || !allowed.includes(curSec.id.slice(2))) showSection(allowed[0]);
-  if(user.role==='pastoral'){ $('fYear').style.display='none'; $('yearLock').style.display=''; $('yearLock').textContent='🔒 '+user.year; }
+  if(isPastoral(user.role)){ $('fYear').style.display='none'; $('yearLock').style.display=''; $('yearLock').textContent='🔒 '+user.year; }
   else { $('fYear').style.display=''; $('yearLock').style.display='none'; }
-  document.querySelector('#s-monitor .stephead h2').textContent = 'Monitoring' + (user.role==='pastoral' ? ' · '+user.year : '');
+  document.querySelector('#s-monitor .stephead h2').textContent = 'Monitoring' + (isPastoral(user.role) ? ' · '+user.year : '');
   if(user.role==='tutor'){ renderTutor(); return; }
   renderLists(); renderDetail();
   if($('s-monitor').classList.contains('on')) renderMonitor();
@@ -1247,19 +1455,34 @@ $('nav').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   showSection(b.dataset.s); closeStudent(); window.scrollTo(0,0); renderAll(); };
 $('seg').onclick = e => { const b = e.target.closest('button'); if(!b) return; curList = b.dataset.l;
   document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b)); renderLists(); };
-['q','fYear','fTutor','fBand','fBlock','fSort','fDue'].forEach(id => $(id).addEventListener('input', renderLists));
+['q','fYear','fTutor','fBand','fBlock','fGroup','fSort','fDue'].forEach(id => $(id).addEventListener('input', renderLists));
 $('fBtn').onclick = () => { const b = $('filterBox'); b.hidden = !b.hidden; $('fBtn').classList.toggle('on', !b.hidden); };
-$('cards').onclick = e => { const c = e.target.closest('.card'); if(c) openStudent(+c.dataset.id || c.dataset.id); };
-$('mOver').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(+r.dataset.id || r.dataset.id); };
+$('cards').onclick = e => { const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id); };
+$('mOver').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
+$('tgRows').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
 $('shade').onclick = closeStudent; $('dClose').onclick = closeStudent;
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeStudent(); });
 $('dBody').onclick = e => {
   if(e.target.id==='pickToggle'){ showPick = true; renderDetail(); return; }
   const g = e.target.closest('[data-g]'); if(g && !g.disabled){ pickGoal = +g.dataset.g; const n=$('note')?.value; renderDetail(); if(n) $('note').value=n; return; }
+  const rw = e.target.closest('[data-rw]'); if(rw){ record('reward', rw.dataset.rw); return; }
+  if(e.target.id==='tgToggle'){ const s = curUpload().rows[selId]; const on = !state.targets[s.id]; setTarget(s.id, on); toast(on ? 'Added to the target group' : 'Removed from the target group'); renderAll(); return; }
   const a = e.target.closest('[data-act]'); if(a && !a.disabled) record(a.dataset.act);
 };
 const S = state => state.settings;
-function setSetting(k,v){ state.settings[k]=v; save(); renderAll(); }
+function setSetting(k,v){ state.settings[k]=v; saveSettings(); renderAll(); }
+$('tGoal').onchange = e => setSetting('tGoal', Math.min(100,Math.max(1,+e.target.value||90)));
+let clearArmed = null;
+$('tgAddDA').onclick = () => { let n = 0; students().forEach(s => { if(s.da && info(s).list && !state.targets[s.id]){ setTarget(s.id, true); n++; } }); toast(n ? n+' DA students added to the target group' : 'All DA students on the list are already in the group'); renderAll(); };
+$('tgClear').onclick = () => { const b = $('tgClear'); if(!clearArmed){ b.textContent = 'Tap again to clear everyone'; clearArmed = setTimeout(()=>{ clearArmed=null; b.textContent='Clear the target group'; }, 4000); return; }
+  clearTimeout(clearArmed); clearArmed = null; b.textContent = 'Clear the target group'; Object.keys(state.targets).forEach(id => setTarget(id, false)); renderAll(); };
+$('rwTable').onchange = e => { const el = e.target.closest('[data-rwi]'); if(!el) return; const r = state.settings.rewards[+el.dataset.rwi]; r[el.dataset.k] = el.dataset.k==='from' ? +el.value : el.value.trim(); saveSettings(); };
+$('rwTable').onclick = e => { const b = e.target.closest('[data-rwdel]'); if(!b) return; state.settings.rewards.splice(+b.dataset.rwdel,1); saveSettings(); renderSettings(); };
+$('rwAdd').onclick = () => { (state.settings.rewards ||= []).push({name:'New reward', from:10}); saveSettings(); renderSettings(); };
+$('staffTable').onchange = e => { const el = e.target.closest('[data-sti]'); if(!el) return; const p = state.staff[+el.dataset.sti]; p[el.dataset.k] = el.value.trim(); if(p.role==='vp') p.year=''; saveStaff(); $('staffMsg').textContent = '✓ Saved'; renderSettings(); };
+$('staffTable').onclick = e => { const b = e.target.closest('[data-stdel]'); if(!b) return; state.staff.splice(+b.dataset.stdel,1); saveStaff(); renderSettings(); };
+$('staffAdd').onclick = () => { state.staff.push({name:'', email:'', role:'pl', year:''}); renderSettings(); };
+$('importNow').onclick = () => { $('importMsg').textContent = 'Importing from Synergy…'; call('importNow').then(r => { $('importMsg').textContent = '✓ '+r; bootFromServer(); }).catch(e => { $('importMsg').textContent = '⚠ '+(e.message||e); }); };
 document.querySelectorAll('input[name=tmode]').forEach(r => r.onchange = () => setSetting('tmode', r.value));
 $('tPct').onchange = e => setSetting('tPct', Math.min(100,Math.max(1,+e.target.value||90)));
 $('tDays').onchange = e => setSetting('tDays', Math.max(0,+e.target.value||0));
@@ -1275,7 +1498,7 @@ $('clockDay').onchange = e => setSetting('clockDay', e.target.value);
 $('clockTime').onchange = e => setSetting('clockTime', e.target.value||'10:15');
 $('months').onclick = e => { const b = e.target.closest('button[data-d]'); if(!b||b.disabled) return; const d=b.dataset.d;
   if(d===state.settings.lastDay) return;
-  const c = state.settings.closed; c[d] = !c[d] ? 'hol' : c[d]==='hol' ? 'inset' : undefined; if(!c[d]) delete c[d]; save(); renderAll(); };
+  const c = state.settings.closed; c[d] = !c[d] ? 'hol' : c[d]==='hol' ? 'inset' : undefined; if(!c[d]) delete c[d]; saveSettings(); renderAll(); };
 $('doPaste').onclick = () => { const t = $('paste').value; if(!t.trim()){ setMsg('warn','Paste some rows first.'); return; } importText(t, $('upDate').value||TODAY); $('paste').value=''; };
 $('csvFile').onchange = e => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = () => importText(r.result, $('upDate').value||TODAY); r.readAsText(f); e.target.value=''; };
 let resetArmed = null;
@@ -1312,8 +1535,8 @@ function renderTutor(){
     return `<div class="tcard${ch?' done':aw?' away':''}">
       <div><div class="nm">${esc(s.name)}</div><div class="cellmeta">${fmtPct(f.p)} now</div></div>
       <div class="tbtns">
-        <button class="tick${ch?' on':''}" data-tid="${s.id}"><span class="dot">✓</span>${ch ? (today?'Spoke today':'Spoke '+nice(ch.date)) : 'Spoke to them'}</button>
-        ${ch ? '' : `<button class="awaybtn${aw?' on':''}" data-aid="${s.id}">${aw ? '✓ Not in this week' : 'Not in this week'}</button>`}
+        <button class="tick${ch?' on':''}" data-tid="${esc(s.id)}"><span class="dot">✓</span>${ch ? (today?'Spoke today':'Spoke '+nice(ch.date)) : 'Spoke to them'}</button>
+        ${ch ? '' : `<button class="awaybtn${aw?' on':''}" data-aid="${esc(s.id)}">${aw ? '✓ Not in this week' : 'Not in this week'}</button>`}
       </div>
       <div class="say">${f.streak.days>=3?esc(first)+' has been in every day for '+f.streak.days+(f.streak.capped?'+':'')+' days. ':''}If ${esc(first)} is in every day until <b>${nice(f.byDate)}</b>, they'll reach <b>${f.target}%</b>. That's ${fmtDays(f.need)}.</div>
     </div>`; }).join('')
@@ -1325,19 +1548,17 @@ function renderTutor(){
 $('tCards').onclick = e => {
   const a = e.target.closest('[data-aid]');
   if(a){
-    const id = +a.dataset.aid || a.dataset.aid, s = curUpload().rows[id], f = info(s);
-    if(f.tutorAway){ state.log.splice(state.log.indexOf(f.tutorAway),1); save(); renderAll(); return; }
-    const entry = {sid:id, type:'tutoraway', m:f.target, date:TODAY, staff:user.name, t:Date.now()};
-    state.log.push(entry); lastAction = entry; save();
+    const s = curUpload().rows[a.dataset.aid], f = info(s);
+    if(f.tutorAway){ removeLog(f.tutorAway); renderAll(); return; }
+    lastAction = addLog({sid:s.id, type:'tutoraway', m:f.target, date:TODAY, staff:user.name, t:Date.now()});
     toast('Marked as not in this week: '+s.name.split(', ').reverse().join(' '));
     renderAll(); return;
   }
   const b = e.target.closest('[data-tid]'); if(!b) return;
-  const id = +b.dataset.tid || b.dataset.tid, s = curUpload().rows[id], f = info(s);
-  if(f.tutorAway) state.log.splice(state.log.indexOf(f.tutorAway),1);
-  if(f.tutorChat && f.tutorChat.date===TODAY){ const i = state.log.indexOf(state.log.find(l=>l===f.tutorChat)); state.log.splice(i,1); save(); renderAll(); return; }
-  const entry = {sid:id, type:'tutor', m:f.target, date:TODAY, staff:user.name, t:Date.now()};
-  state.log.push(entry); lastAction = entry; save();
+  const s = curUpload().rows[b.dataset.tid], f = info(s);
+  if(f.tutorAway) removeLog(f.tutorAway);
+  if(f.tutorChat && f.tutorChat.date===TODAY){ removeLog(f.tutorChat); renderAll(); return; }
+  lastAction = addLog({sid:s.id, type:'tutor', m:f.target, date:TODAY, staff:user.name, t:Date.now()});
   toast('Logged: you spoke to '+s.name.split(', ').reverse().join(' '));
   renderAll();
 };
@@ -1346,7 +1567,11 @@ $('tCards').onclick = e => {
 function showLogin(){
   const all = allStudents();
   const years = [...new Set(all.map(s=>s.year||'No year'))].filter(y=>y!=='No year').sort((a,b)=>yearNum(a)-yearNum(b));
-  $('pastoralBtns').innerHTML = years.map(y => `<button class="rolebtn" data-role="pastoral" data-year="${esc(y)}">${esc(pastoralName(y))}<small>${all.filter(s=>s.year===y).length} students in the data</small></button>`).join('');
+  const btns = role => state.staff.filter(p => p.role===role && p.year).sort((a,b)=>yearNum(a.year)-yearNum(b.year)).map(p => `<button class="rolebtn" data-email="${esc(p.email)}">${esc(p.name)}<small>${esc(ROLE_NAMES[role])} · ${esc(p.year)}</small></button>`).join('') || '<p class="cellmeta">None set yet.</p>';
+  $('llBtns').innerHTML = btns('ll'); $('plBtns').innerHTML = btns('pl');
+  const vp = state.staff.find(p => p.role==='vp');
+  document.querySelector('.rolebtn.vp').dataset.email = vp ? vp.email : '';
+  document.querySelector('.rolebtn.vp').innerHTML = (vp ? esc(vp.name)+'<small>Vice Principal · all years · settings</small>' : 'Vice Principal<small>All years · settings</small>');
   $('tutorYear').innerHTML = years.map(y=>`<option>${esc(y)}</option>`).join('');
   fillTutors();
   $('login').classList.add('on');
@@ -1362,13 +1587,28 @@ $('tutorYear').onchange = fillTutors;
 function signIn(u){ user = u; $('toast').classList.remove('on'); try{ localStorage.setItem(KEY+'.user', JSON.stringify(u)); }catch(e){} $('login').classList.remove('on'); closeStudent(); curList='new'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l==='new')); $('fYear').value=''; $('fTutor').value=''; window.scrollTo(0,0); renderAll(); }
 $('login').onclick = e => {
   const b = e.target.closest('.rolebtn'); if(!b) return;
-  if(b.dataset.role==='vp') signIn({role:'vp', name:'Vice Principal'});
-  else signIn({role:'pastoral', year:b.dataset.year, name:pastoralName(b.dataset.year)});
+  const p = state.staff.find(x => x.email===b.dataset.email);
+  if(p) signIn({role:p.role, year:p.year, name:p.name, email:p.email});
+  else signIn({role:'vp', name:'Vice Principal'});
 };
-$('tutorGo').onclick = () => { const g = $('tutorSel').value; if(!g) return; signIn({role:'tutor', tutor:g, year:$('tutorYear').value, name:tutorName(g)}); };
+$('tutorGo').onclick = () => { const g = $('tutorSel').value; if(!g) return;
+  if(API){ $('tutorGo').disabled = true; call('setMyForm', g).then(() => { $('login').classList.remove('on'); bootFromServer(); }); return; }
+  signIn({role:'tutor', tutor:g, year:$('tutorYear').value, name:tutorName(g)}); };
+function showFormPicker(forms){
+  // Apps Script: a tutor's first visit. They pick their form once.
+  $('login').classList.add('on');
+  document.querySelectorAll('#login .panel').forEach(p => p.style.display = p.id==='tutorPanel' ? '' : 'none');
+  document.querySelector('#login > .loginwrap > .hint').textContent = 'Welcome, '+user.name+'. Pick your form group to get started. You only need to do this once.';
+  $('tutorPanel').querySelector('h2').textContent = 'Your form';
+  const years = [...new Set(forms.map(f=>f.year))].sort((a,b)=>yearNum(a)-yearNum(b));
+  $('tutorYear').innerHTML = years.map(y=>`<option>${esc(y)}</option>`).join('');
+  const fill = () => { $('tutorSel').innerHTML = forms.filter(f=>f.year===$('tutorYear').value).map(f=>`<option value="${esc(f.code)}">${esc(f.code)}</option>`).join(''); };
+  $('tutorYear').onchange = fill; fill();
+  $('tutorGo').textContent = 'This is my form';
+}
 $('signOut').onclick = () => { user = null; $('toast').classList.remove('on'); try{ localStorage.removeItem(KEY+'.user'); }catch(e){} closeStudent(); showLogin(); };
 
-load(); renderAll();
+load();
 </script>
 </body>
 </html>
