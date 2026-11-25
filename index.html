@@ -537,6 +537,20 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       </details>
     </div>
 
+    <div class="panel" id="scPanel">
+      <h2>Staff codes</h2>
+      <p class="hint" id="scStatus"></p>
+      <p class="hint">Upload the staff code list (Staff Code, Full Name) as the Word file, a spreadsheet, or paste it below. Tutors are matched to the forms with their code in the name, e.g. 10BRN or 11HLC/PLN, using emails worked out from the name (Mrs H Abbott → h.abbott@rainford.org.uk). Tutors who aren't matched pick from the forms that have no tutor.</p>
+      <textarea id="scPaste" rows="3" placeholder="Or paste the table here (Staff Code, Full Name)"></textarea>
+      <div class="row" style="margin-top:10px">
+        <label class="btn">Choose file<input type="file" id="scFile" accept=".docx,.xlsx,.xls,.csv"></label>
+        <button class="btn" id="scPasteGo">Check pasted list</button>
+      </div>
+      <div class="msg" id="scMsg"></div>
+      <details id="scUnBox" style="display:none"><summary id="scUnSum"></summary><p class="cellmeta" id="scUnList" style="margin:6px 0 0"></p></details>
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="scSave" style="display:none">Save staff codes</button></div>
+    </div>
+
     <div class="panel" id="ttPanel">
       <h2>Timetable</h2>
       <p class="hint" id="ttStatus"></p>
@@ -619,7 +633,11 @@ const MILESTONES = [10,20,30,40,50,60,70,80,90,95];
 const TITLES = ['Mr','Mrs','Miss','Ms','Mr','Mrs'];
 const TSUR = ['Ashworth','Bennett','Carroll','Dunne','Ellison','Fletcher','Gallagher','Hesketh','Ince','Jennings','Kenyon','Lyon','Marsh','Naylor','Owens','Pickavance','Quinn','Rainey','Sefton','Tomlinson','Upton','Vose','Webster','Yates','Barton','Crompton','Dixon','Eccles','Forshaw','Gaskell'];
 function hashStr(s){ let h=7; for(const c of s) h=(h*31+c.charCodeAt(0))>>>0; return h; }
-const tutorName = code => API ? ((state && state.tutors && state.tutors[code]) || 'Tutor not set up yet') : mockTutorName(code);
+const tutorName = code => {
+  if(API) return (state && state.tutors && state.tutors[code]) || 'Tutor not set up yet';
+  const sc = state && state.staffCodes; if(sc){ const n = sc.filter(r => formCodes(code).includes(r[0])).map(r => prettyName(r[1])); if(n.length) return n.join(' & '); }
+  return mockTutorName(code);
+};
 const mockTutorName = code => { const h = hashStr(code); return TITLES[h%TITLES.length]+' '+TSUR[(h>>>3)%TSUR.length]; };
 const pastoralName = y => (y||'No year')+' Pastoral'; // only used for old saved logs
 const isFormGroup = code => code && !/REFLECT|^CC/i.test(code);
@@ -903,7 +921,7 @@ function bootFromServer(){
     // rebuild each day's rows from today's student details plus the compact history
     const info0 = {}; (b.current||[]).forEach(s => info0[s.id] = s);
     const uploads = (b.snaps||[]).map(sn => { const rows = {}; Object.keys(sn.d).forEach(id => { const c = info0[id]; if(c) rows[id] = {...c, P:sn.d[id][0], A:sn.d[id][1]}; }); return {date:sn.date, rows}; });
-    state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], targets:b.targets||{}, staff:b.staff||[], tutors:b.tutors||{}, lastImport:b.lastImport||''};
+    state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], targets:b.targets||{}, staff:b.staff||[], tutors:b.tutors||{}, lastImport:b.lastImport||'', staffCodesCount: b.staffCodes ? b.staffCodes.count : 0};
     user = b.user;
     TT = b.tt ? buildTT(b.tt.classes, b.tt.map) : null; TT_META = b.tt ? b.tt.meta : null;
     if(!state.uploads.length){
@@ -913,7 +931,7 @@ function bootFromServer(){
       return;
     }
     $('firstUp').style.display = 'none';
-    if(user.role==='tutor' && !user.tutor){ showFormPicker(b.forms||[]); return; }
+    if(user.role==='tutor' && !(user.forms||[]).length){ showFormPicker(b.forms||[]); return; }
     renderAll();
   }).withFailureHandler(e => { $('loadingMsg').textContent = 'Couldn\'t load: ' + (e.message||e); }).getBootstrap();
 }
@@ -1015,7 +1033,7 @@ function allStudents(){ return Object.values(curUpload().rows).filter(s => s.P>0
 function students(){
   const a = allStudents();
   if(user && isPastoral(user.role)) return a.filter(s => (s.year||'No year')===user.year);
-  if(user && user.role==='tutor') return a.filter(s => s.tutor===user.tutor);
+  if(user && user.role==='tutor'){ const fs = user.forms || [user.tutor]; return a.filter(s => fs.includes(s.tutor)); }
   return a;
 }
 
@@ -1417,6 +1435,8 @@ function renderSettings(){
   const years = [...new Set(allStudents().map(s=>s.year).filter(Boolean))].sort((a,b)=>yearNum(a)-yearNum(b));
   $('staffTable').innerHTML = `<thead><tr><th>Name</th><th>School email</th><th>Role</th><th>Year</th><th></th></tr></thead><tbody>` + state.staff.map((p,i) => `<tr><td><input type="text" data-sti="${i}" data-k="name" value="${esc(p.name)}"></td><td><input type="text" data-sti="${i}" data-k="email" value="${esc(p.email)}"></td><td><select data-sti="${i}" data-k="role">${['vp','ll','pl'].map(r=>`<option value="${r}"${p.role===r?' selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></td><td><select data-sti="${i}" data-k="year" ${p.role==='vp'?'disabled':''}><option value=""></option>${years.map(y=>`<option${p.year===y?' selected':''}>${esc(y)}</option>`).join('')}</select></td><td><button class="btn small danger" data-stdel="${i}">✕</button></td></tr>`).join('') + '</tbody>';
   $('importPanel').style.display = API ? '' : 'none';
+  const scN = API ? (state.staffCodesCount||0) : (state.staffCodes||[]).length;
+  $('scStatus').textContent = scN ? `✓ ${scN} staff codes saved.` : (API ? '⚠ No staff codes yet, so every tutor picks their own form.' : 'The mock-up uses made-up tutor names until a list is uploaded.');
   $('ttStatus').innerHTML = TT_META ? `✓ Timetable uploaded ${niceY(TT_META.uploaded)}: ${TT_META.students} students, ${TT_META.classes} classes${TT_META.matched!=null?', '+TT_META.matched+' matched to the attendance list':''}.` : (API ? '⚠ No timetable uploaded yet, so locations are hidden.' : 'The mock-up is using a made-up timetable. Uploading real files replaces it.');
   if(API && state.lastImport) $('importMsg').textContent = 'Attendance is imported from Synergy every school morning. Last import: '+state.lastImport+'.';
   $('mockPanel').style.display = API ? 'none' : '';
@@ -1450,6 +1470,57 @@ function renderSettings(){
   }
   $('months').innerHTML = html;
 }
+
+/* ---------- staff codes ---------- */
+let scPending = null;
+const prettyName = full => String(full).replace(/\s*-\s*/g,'-').trim().split(/\s+/).map(w => w.length>1 && w===w.toUpperCase() ? w[0]+w.slice(1).toLowerCase().replace(/([-'])([a-z])/g,(m,a,b)=>a+b.toUpperCase()) : w).join(' ');
+function emailGuess(full){
+  const w = String(full).replace(/\s*-\s*/g,'-').trim().split(/\s+/); if(/^(mr|mrs|miss|ms|mx|dr|prof)\.?$/i.test(w[0])) w.shift();
+  return w.length < 2 ? '' : w[0][0].toLowerCase()+'.'+w.slice(1).join('').toLowerCase().replace(/[^a-z-]/g,'')+'@rainford.org.uk';
+}
+const formCodes = form => String(form).replace(/^\d+/,'').toUpperCase().split('/').map(s=>s.trim());
+function parseStaffRows(rows){
+  return rows.map(r => r.map(cellTxt)).filter(r => /^[A-Z]{2,4}$/i.test(r[0]||'') && r[1] && !/^staff code$/i.test(r[0]))
+    .map(r => [r[0].toUpperCase(), r[1], (r.find(x => /@/.test(x))||'').toLowerCase()]);
+}
+async function readStaffFile(f){
+  const X = await loadXLSX(), buf = new Uint8Array(await f.arrayBuffer());
+  if(/\.docx$/i.test(f.name)){
+    const z = X.CFB.read(buf, {type:'array'}), e = X.CFB.find(z, 'word/document.xml') || X.CFB.find(z, '/word/document.xml');
+    if(!e) throw new Error('Could not read that Word file.');
+    const xml = new TextDecoder().decode(e.content);
+    return parseStaffRows((xml.match(/<w:tr[ >][\s\S]*?<\/w:tr>/g)||[]).map(r => (r.match(/<w:tc>[\s\S]*?<\/w:tc>/g)||[]).map(c => c.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&apos;/g,"'"))));
+  }
+  const wb = X.read(buf, {type:'array'});
+  return parseStaffRows(X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:'', raw:false}));
+}
+function scMsg(k, h){ const m = $('scMsg'); m.className = 'msg '+k; m.innerHTML = h; }
+function scCheck(rows){
+  if(!rows.length){ scMsg('bad','⚠ No staff codes found. The list needs a Staff Code column (2 to 4 letters) and a Full Name column.'); return; }
+  const byCode = {}; rows.forEach(r => (byCode[r[0]] ||= []).push(r[1]));
+  const dups = Object.keys(byCode).filter(k => byCode[k].length > 1);
+  const forms = [...new Set(allStudents().map(s => s.tutor).filter(Boolean))].sort();
+  const matched = forms.filter(f => formCodes(f).some(c => byCode[c]));
+  const un = forms.filter(f => !matched.includes(f));
+  const dupForms = matched.filter(f => formCodes(f).some(c => dups.includes(c)));
+  const ex = rows[0];
+  scMsg(matched.length/Math.max(forms.length,1) > 0.6 ? 'ok' : 'warn', `✓ Read ${rows.length} staff. <b>${matched.length} of ${forms.length}</b> forms have a tutor from the list. For example, ${esc(prettyName(ex[1]))} (${esc(ex[0])}) will sign in as ${esc(ex[2] || emailGuess(ex[1]))}.`
+    + (dups.length ? `<br>⚠ ${dups.length} codes belong to more than one person: ${dups.map(k => esc(k)+' ('+byCode[k].map(prettyName).map(esc).join(', ')+')').join('; ')}. ${dupForms.length ? 'Both people will see '+dupForms.map(esc).join(', ')+'.' : 'None of them are form tutors, so this doesn\'t matter here.'}` : ''));
+  $('scUnBox').style.display = un.length ? '' : 'none';
+  $('scUnSum').textContent = `${un.length} forms with no tutor in the list. Their tutors will pick their form the first time they sign in.`;
+  $('scUnList').textContent = un.join(' · ');
+  $('scSave').style.display = '';
+  scPending = rows;
+}
+$('scFile').onchange = async e => { const f = e.target.files[0]; e.target.value=''; if(!f) return;
+  scMsg('info','Reading '+esc(f.name)+'…'); try{ scCheck(await readStaffFile(f)); }catch(err){ scMsg('bad','⚠ '+esc(err.message||err)); } };
+$('scPasteGo').onclick = () => { const t = $('scPaste').value; if(!t.trim()) return scMsg('warn','Paste the list first.');
+  scCheck(parseStaffRows(t.split(/\r?\n/).map(l => l.split(/\t|,(?=\s*\S)/)))); };
+$('scSave').onclick = () => {
+  const rows = scPending; if(!rows) return; $('scSave').style.display = 'none';
+  if(API){ scMsg('info','Saving…'); call('saveStaffCodes', rows).then(n => { scMsg('ok', '✓ Saved '+n+' staff codes. Tutors will be matched to their forms when they next open the app.'); scPending = null; bootFromServer(); }); return; }
+  state.staffCodes = rows; save(); scMsg('ok','✓ Saved in this browser.'); scPending = null; renderAll();
+};
 
 /* ---------- timetable upload ---------- */
 let ttPending = {classes:null, students:null, files:[]};
@@ -1769,11 +1840,12 @@ function showFormPicker(forms){
   // Apps Script: a tutor's first visit. They pick their form once.
   $('login').classList.add('on');
   document.querySelectorAll('#login .panel').forEach(p => p.style.display = p.id==='tutorPanel' ? '' : 'none');
-  document.querySelector('#login > .loginwrap > .hint').textContent = 'Welcome, '+user.name+'. Pick your form group to get started. You only need to do this once.';
+  document.querySelector('#login > .loginwrap > .hint').textContent = 'Welcome, '+user.name+'. We couldn\'t match you to a form from the staff list, so pick your form group below. You only need to do this once.';
+  if(!forms.length){ document.querySelector('#login > .loginwrap > .hint').textContent = 'Welcome, '+user.name+'. You\'re not matched to a form group, and every form already has its tutor. If you should have access, ask the Vice Principal.'; $('tutorPanel').style.display = 'none'; return; }
   $('tutorPanel').querySelector('h2').textContent = 'Your form';
   const years = [...new Set(forms.map(f=>f.year))].sort((a,b)=>yearNum(a)-yearNum(b));
   $('tutorYear').innerHTML = years.map(y=>`<option>${esc(y)}</option>`).join('');
-  const fill = () => { $('tutorSel').innerHTML = forms.filter(f=>f.year===$('tutorYear').value).map(f=>`<option value="${esc(f.code)}">${esc(f.code)}</option>`).join(''); };
+  const fill = () => { $('tutorSel').innerHTML = forms.filter(f=>f.year===$('tutorYear').value).map(f=>`<option value="${esc(f.code)}">${esc(f.code)}${f.takenBy&&f.takenBy.length?' (also '+esc(f.takenBy.join(', '))+')':''}</option>`).join(''); };
   $('tutorYear').onchange = fill; fill();
   $('tutorGo').textContent = 'This is my form';
 }
