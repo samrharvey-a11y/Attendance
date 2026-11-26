@@ -124,6 +124,9 @@ td.num,th.num{font-variant-numeric:tabular-nums;text-align:right}
 .card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .card .nm{font-weight:700;font-size:15.5px}
 .card .meta{font-size:12.5px;color:var(--muted)}
+.card.ingroup{border-left:5px solid var(--accent);padding-left:11px}
+.gband{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;margin:-2px 0 2px}
+.gpill{display:inline-block;font-size:11.5px;font-weight:700;border:1px solid;border-radius:999px;padding:1px 8px;white-space:nowrap}
 .card .pct{font-size:22px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;line-height:1.1}
 .card .pct small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
 .card .goal{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;margin-top:4px}
@@ -224,6 +227,13 @@ td.num,th.num{font-variant-numeric:tabular-nums;text-align:right}
 .frows{display:flex;flex-direction:column;gap:2px}
 .frow{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr) 90px 110px;gap:12px;align-items:center;padding:7px 4px;border-bottom:1px solid #eef0f3;font-size:13px;cursor:pointer}
 .frow:hover{background:#fafbfd}
+.tttable tr.form{cursor:pointer}
+.tttable tr.form td:first-child::before{content:'▸ ';color:var(--muted)}
+.tttable tr.form.open td:first-child::before{content:'▾ '}
+.tttable tr.kids td{background:#fafbfd;padding:8px 12px}
+.tttable tr.kids ul{margin:0;padding-left:18px}
+.tttable tr.kids li{margin:2px 0;cursor:pointer}
+.tttable tr.kids li:hover{text-decoration:underline}
 .frow .who b{display:block;font-size:13.5px}
 .frow .who span{color:var(--muted);font-size:12px}
 .sbar{display:flex;height:12px;border-radius:5px;overflow:hidden;background:#eef0f3}
@@ -412,6 +422,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   <nav id="nav">
     <button data-s="tutor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>My form</button>
     <button data-s="lists" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Students</button>
+    <button data-s="tutors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tutors</button>
     <button data-s="monitor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Monitoring</button>
     <button data-s="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
   </nav>
@@ -475,6 +486,19 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   </section>
 
   <!-- MONITORING -->
+  <section id="s-tutors">
+    <div class="stephead row"><h2 class="grow" id="ttTitle">Tutors</h2><button class="btn" id="ttCopy">Copy reminder for tutors</button></div>
+    <p class="hint" id="ttHint"></p>
+    <div class="stats" id="ttStats" style="margin-bottom:16px"></div>
+    <div class="panel">
+      <div class="row"><h2 class="grow">This week, by form</h2>
+        <select id="ttFilter"><option value="all">All forms</option><option value="out">Still to log</option><option value="none">Nothing logged this week</option><option value="quiet">No logs in 10 school days</option></select></div>
+      <p class="hint">Students on a tutor list are within the tutor days of a milestone. Tap a form to see its students.</p>
+      <div class="scroll"><table id="ttTable" class="tttable"></table></div>
+      <p class="cellmeta" id="ttMsg" style="margin-top:8px"></p>
+    </div>
+  </section>
+
   <section id="s-monitor">
     <div class="stephead row"><h2 class="grow">Monitoring</h2><button class="btn" id="printWeek">Print weekly summary</button></div>
     <div class="stats" id="mStats" style="margin-bottom:16px"></div>
@@ -533,6 +557,8 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       <label class="radio"><input type="radio" name="tmode" value="pct"> Below <input type="number" id="tPct" min="1" max="100" step="1">% attendance</label>
       <label class="radio"><input type="radio" name="tmode" value="days"> Missed more than <input type="number" id="tDays" min="0" step="0.5"> days</label>
       <label class="radio"><input type="radio" name="tmode" value="near"> <input type="number" id="tNear" min="0.5" step="0.5"> days or fewer from their next milestone</label>
+      <label class="radio"><input type="radio" name="tmode" value="groups"> Only target students (anyone in a group)</label>
+      <p class="hint" style="margin:4px 0 0">Students in a group always go on the list, whichever rule you pick.</p>
       <p class="hint" id="scopeMsg" style="margin:8px 0 14px"></p>
       <label class="radio">Check-in due every <input type="number" id="ciDays" min="1" step="1"> school days</label>
       <label class="radio">Tutors see students <input type="number" id="tutorDays" min="0.5" step="0.5"> days or fewer from a milestone</label>
@@ -1088,6 +1114,9 @@ function autoMembers(){
   });
   return MEMO.auto = out;
 }
+const GROUP_COLS = [['#1f5fbf','#e6eefb'],['#7a3fb0','#f1e8fa'],['#1d7a46','#e3f4ea'],['#b35c00','#fdf0e0'],['#0f7f86','#e0f4f5'],['#b0306a','#fbe6f0'],['#5d6678','#eef0f3']];
+function groupCol(g){ const i = (state.settings.groups||[]).findIndex(x => x.id===g.id); return GROUP_COLS[(i<0?0:i) % GROUP_COLS.length]; }
+function gPill(g){ const [ink,bg] = groupCol(g); return `<span class="gpill" style="color:${ink};background:${bg};border-color:${ink}40">${esc(g.name)}</span>`; }
 function groupsOf(s){
   const auto = autoMembers(), id = String(s.id);
   return groupList().filter(g => isManualGroup(g) ? !!(state.members[g.id]||{})[id] : auto[g.id] && auto[g.id].has(id));
@@ -1112,18 +1141,18 @@ function infoCalc(s){
   const ever = contacts.length>0;
   const nextNeed = nextM!=null ? daysNeeded(s.A, s.P, nextM/100) : null;
   const tm = state.settings.tmode;
-  const inScope = tm==='pct' ? (p!=null && p < +state.settings.tPct)
+  const groups = groupsOf(s);
+  const inGroup = groups.some(g => !isManualGroup(g) || p < (+g.goal||90));
+  const inScope = tm==='groups' ? inGroup : tm==='pct' ? (p!=null && p < +state.settings.tPct)
     : tm==='days' ? (s.P>0 && (s.P - s.A) > +state.settings.tDays)
     : (nextNeed!=null && nextNeed>0 && nextNeed <= +state.settings.tNear && nextNeed <= L);
   const tutorWin = target!=null && need>0 && reachable && need <= +state.settings.tutorDays && !rewardDue;
   const tutorChat = target!=null ? logs.filter(l=>l.type==='tutor' && l.m===target).pop() || null : null;
   const tutorAway = !tutorChat ? logs.filter(l=>l.type==='tutoraway' && l.date >= weekStart(TODAY)).pop() || null : null;
   const first = state.firstListed[s.id];
-  const groups = groupsOf(s);
   const tg = (state.members.da17||{})[s.id] || null;   // kept for older screens: DA-17 membership
   const tGoal = (groupById('da17')||{}).goal || +state.settings.tGoal || 90;
-  const inGroup = groups.some(g => !isManualGroup(g) || p < (+g.goal||90));
-  const isNew = !ever && inScope;
+  const isNew = !ever && (inScope || inGroup);
   let list = null;
   if(rewardDue) list = 'reward';
   else if(isNew) list = 'new';
@@ -1245,9 +1274,10 @@ function renderLists(){
   $('cards').innerHTML = rows.map(({s,f,w,loc}) => {
     let head = '';
     if(sort==='loc'){ const g = lkey(loc); if(g!==lastG){ lastG = g; const n = rows.filter(x=>lkey(x.loc)===g).length; head = `<div class="grouphead">${loc ? ZONES[loc.z]+' block · '+FLOORS[loc.f] : 'No room (form time, PE, study periods and others)'} <span>${n}</span></div>`; } }
-    return head + `<button class="card${String(s.id)===String(selId)?' sel':''}" data-id="${esc(s.id)}">
-      <div class="nm">${esc(s.name)}</div><div class="pct">${fmtPct(f.p)}</div>
-      <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}${user.role!=='tutor' ? f.groups.map(g => ' <span class="gtag">'+esc(g.name)+'</span>').join('') : ''}</div>${curList==='check'?statusShort(f):'<span></span>'}
+    const gs = user.role!=='tutor' ? f.groups : [];
+    return head + `<button class="card${String(s.id)===String(selId)?' sel':''}${gs.length?' ingroup':''}" data-id="${esc(s.id)}"${gs.length?` style="border-left-color:${groupCol(gs[0])[0]}"`:''}>
+      ${gs.length ? `<div class="gband">${gs.map(gPill).join('')}</div>` : ''}<div class="nm">${esc(s.name)}</div><div class="pct">${fmtPct(f.p)}</div>
+      <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}</div>${curList==='check'?statusShort(f):'<span></span>'}
       <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}</div>
       ${hasTimetable() ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
     </button>`; }).join('') + (total > rows.length ? `<button class="btn morebtn" id="moreCards">Show ${Math.min(50, total-rows.length)} more (${total-rows.length} not shown)</button>` : '');
@@ -1314,7 +1344,7 @@ function renderVPTable(rows){
         <td><b>${esc(s.name)}</b></td><td>${esc(String(yearNum(s.year)||''))}</td><td>${esc(s.tutor)}</td><td>${s.da?'<span class="datag">DA</span>':''}</td>
         <td class="num"><b>${fmtPct(f.p)}</b></td><td class="num">${f.change==null?'':changeTag(f.change)}</td>
         <td class="num">${f.target!=null?f.target+'%':''}</td><td class="num">${f.target==null?'':f.rewardDue?'✓':f.reachable?fmtDays(f.need).replace(' days','').replace(' day',''):'–'}</td>
-        <td>${vpStatus(f)[0]}</td><td>${f.groups.map(g => '<span class="gtag">'+esc(g.name)+'</span>').join(' ')}</td><td class="cellmeta">${f.last?nice(f.last.date):''}</td></tr>`; }).join('') || '<tr><td colspan="12" class="cellmeta">No students match.</td></tr>') + '</tbody>';
+        <td>${vpStatus(f)[0]}</td><td>${f.groups.map(gPill).join(' ')}</td><td class="cellmeta">${f.last?nice(f.last.date):''}</td></tr>`; }).join('') || '<tr><td colspan="12" class="cellmeta">No students match.</td></tr>') + '</tbody>';
   $('vpMore').style.display = rows.length > vpLimit ? '' : 'none';
   $('vpMore').textContent = `Show ${Math.min(100, rows.length - vpLimit)} more (${rows.length - vpLimit} not shown)`;
   renderBulkBar(rows.length);
@@ -1606,6 +1636,56 @@ function renderTutorMonitor(all){
 }
 $('tmRows').onclick = e => { const r = e.target.closest('.frow'); if(r) r.classList.toggle('open'); };
 $('tmFilter').onchange = () => renderTutorMonitor(students().map(s=>({s, f:info(s)})));
+
+/* ---------- Tutors tab: learning leaders checking their tutors ---------- */
+let ttOpen = new Set();
+function tutorForms(){
+  const forms = {};
+  const since = schoolDaysBack(TODAY, 10).pop(), wk = weekStart(TODAY);
+  students().filter(s => isFormGroup(s.tutor)).forEach(s => {
+    const f = info(s);
+    const g = forms[s.tutor] ||= {code:s.tutor, year:s.year||'No year', n:0, win:[], done:[], away:[], out:[], grp:0, logs10:0, week:0, last:null};
+    g.n++; if(f.groups.length) g.grp++;
+    if(f.tutorWin){ g.win.push({s,f}); (f.tutorChat ? g.done : f.tutorAway ? g.away : g.out).push({s,f}); }
+    f.logs.filter(l => l.type==='tutor'||l.type==='tutoraway').forEach(l => { if(l.date>=since) g.logs10++; if(l.date>=wk) g.week++; if(!g.last || l.date>g.last) g.last = l.date; });
+  });
+  return Object.values(forms).sort((a,b) => yearNum(a.year)-yearNum(b.year) || a.code.localeCompare(b.code));
+}
+function renderTutorsTab(){
+  const forms = tutorForms();
+  $('ttTitle').textContent = 'Tutors' + (isPastoral(user.role) ? ' · '+user.year : '');
+  const w = forms.reduce((t,g)=>t+g.win.length,0), d = forms.reduce((t,g)=>t+g.done.length,0), a = forms.reduce((t,g)=>t+g.away.length,0);
+  const active = forms.filter(g=>g.win.length), full = active.filter(g=>!g.out.length).length, none = active.filter(g=>!g.done.length&&!g.away.length).length;
+  const quiet = forms.filter(g=>!g.logs10).length;
+  $('ttHint').textContent = `Who each tutor still needs to speak to this week (since ${nice(weekStart(TODAY))}).`;
+  $('ttStats').innerHTML = [[w? Math.round((d+a)/w*100)+'%':'–','of tutor lists logged',''],[w-d-a,'students still to log',w-d-a?'warn':''],[full+' of '+active.length,'forms all done',''],[none,'forms with nothing logged',none?'bad':''],[quiet,'forms with no logs in 10 school days',quiet?'warn':'']]
+    .map(([v,k,c])=>`<div class="stat"><div class="v"${c?` style="color:var(--${c})"`:''}>${v}</div><div class="k">${k}</div></div>`).join('');
+  const fl = $('ttFilter').value;
+  const rows = forms.filter(g => fl==='out' ? g.out.length : fl==='none' ? g.win.length && !g.done.length && !g.away.length : fl==='quiet' ? !g.logs10 : true);
+  const status = g => !g.win.length ? '<span class="tag grey">Nobody due</span>' : !g.out.length ? '<span class="pill ok">✓ Done</span>' : (g.done.length||g.away.length) ? '<span class="pill warn">Part done</span>' : '<span class="pill bad">Nothing logged</span>';
+  const nm = s => esc(s.name.split(', ').reverse().join(' '));
+  const li = ({s,f}, extra) => `<li data-id="${esc(s.id)}">${nm(s)} <span class="cellmeta">· ${fmtPct(f.p)} · ${f.target}% in ${fmtDays(f.need)}${extra||''}</span> ${f.groups.map(gPill).join(' ')}</li>`;
+  $('ttTable').innerHTML = `<thead><tr><th>Form</th><th>Tutor</th><th class="num">Students</th><th class="num">In a group</th><th class="num">On tutor list</th><th class="num">Spoken to</th><th class="num">Not in</th><th class="num">Still to log</th><th class="num">Logs, 10 days</th><th>Last logged</th><th>This week</th></tr></thead><tbody>` +
+    (rows.map(g => {
+      const open = ttOpen.has(g.code);
+      return `<tr class="form${open?' open':''}" data-form="${esc(g.code)}"><td><b>${esc(g.code)}</b></td><td>${esc(tutorKnown(g.code)?tutorName(g.code):'No tutor matched')}</td><td class="num">${g.n}</td><td class="num">${g.grp}</td><td class="num">${g.win.length}</td><td class="num">${g.done.length}</td><td class="num">${g.away.length}</td><td class="num">${g.out.length? '<b style="color:var(--bad)">'+g.out.length+'</b>':0}</td><td class="num">${g.logs10}</td><td>${g.last? nice(g.last) : '<span class="tag warn">Never</span>'}</td><td>${status(g)}</td></tr>` +
+        (open ? `<tr class="kids"><td colspan="11">${g.win.length ? `${g.out.length?'<b>Still to log</b><ul>'+g.out.map(x=>li(x)).join('')+'</ul>':''}${g.done.length?'<b>Spoken to</b><ul>'+g.done.map(x=>li(x,' · '+nice(x.f.tutorChat.date))).join('')+'</ul>':''}${g.away.length?'<b>Not in this week</b><ul>'+g.away.map(x=>li(x)).join('')+'</ul>':''}` : '<span class="cellmeta">Nobody in this form is close to a milestone right now.</span>'}</td></tr>` : '');
+    }).join('') || '<tr><td colspan="11" class="cellmeta">No forms match this filter.</td></tr>') + '</tbody>';
+  $('ttMsg').textContent = '';
+}
+$('ttTable').onclick = e => {
+  const kid = e.target.closest('li[data-id]'); if(kid){ openStudent(kid.dataset.id); return; }
+  const r = e.target.closest('tr.form'); if(!r) return;
+  const c = r.dataset.form; ttOpen.has(c) ? ttOpen.delete(c) : ttOpen.add(c); renderTutorsTab();
+};
+$('ttFilter').onchange = renderTutorsTab;
+$('ttCopy').onclick = () => {
+  const out = tutorForms().filter(g => g.out.length);
+  const nm = s => s.name.split(', ').reverse().join(' ');
+  const txt = out.length ? 'Tutor conversations still to log this week:\n\n' + out.map(g => `${g.code} (${tutorKnown(g.code)?tutorName(g.code):'no tutor matched'}): ${g.out.map(x=>nm(x.s)).join(', ')}`).join('\n') : 'All tutor conversations are logged this week.';
+  const done = () => { $('ttMsg').textContent = out.length ? `✓ Copied a reminder listing ${out.length} form${out.length===1?'':'s'}. Paste it into an email or Teams.` : '✓ Copied: everyone is logged.'; };
+  try { navigator.clipboard.writeText(txt).then(done, () => { $('ttMsg').textContent = txt; }); } catch(err){ $('ttMsg').textContent = txt; }
+};
 
 /* ---------- weekly summary ---------- */
 function printWeekly(){
@@ -1909,7 +1989,7 @@ function renderAll(){
     : '<b>'+esc(user.name)+'</b>'+(user.role==='tutor'?' · '+esc(user.tutor): isPastoral(user.role)?' · '+esc(user.year):'');
   renderViewSwitcher();
   $('signOut').style.display = API ? 'none' : '';
-  const allowed = user.role==='vp' ? ['lists','monitor','settings'] : isPastoral(user.role) ? ['lists','monitor'] : ['tutor'];
+  const allowed = user.role==='vp' ? ['lists','tutors','monitor','settings'] : user.role==='ll' ? ['lists','tutors','monitor'] : isPastoral(user.role) ? ['lists','monitor'] : ['tutor'];
   document.querySelectorAll('#nav button').forEach(b => b.style.display = allowed.includes(b.dataset.s) ? '' : 'none');
   $('nav').classList.toggle('single', allowed.length===1);
   const curSec = document.querySelector('main section.on');
@@ -1920,6 +2000,7 @@ function renderAll(){
   if(user.role==='tutor'){ renderTutor(); return; }
   renderLists(); renderDetail();
   if($('s-monitor').classList.contains('on')) renderMonitor();
+  if($('s-tutors').classList.contains('on')) renderTutorsTab();
   if($('s-settings').classList.contains('on')) renderSettings();
 }
 function showSection(id){
