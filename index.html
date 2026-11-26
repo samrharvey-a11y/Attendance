@@ -1161,7 +1161,7 @@ function infoCalc(s){
   let atGoal = null, offTrack = false, drop = 0;
   if(last && !rewardDue && last.date < dataDate()){ const g = uploadOn(last.date).rows[s.id]; if(g && g.P>0){ atGoal = g.A/g.P*100; drop = atGoal - p; offTrack = drop > (+state.settings.offDrop||1) - 1e-9; } }
   const tStatus = !tg ? null : p >= tGoal - 1e-9 ? 'done' : tg.start==null ? 'same' : p > tg.start + 0.05 ? 'up' : p < tg.start - 0.05 ? 'down' : 'same';
-  const checkDue = list==='check' && (offTrack || !activeGoal || sinceContact==null || sinceContact >= +state.settings.ciDays);
+  const checkDue = list==='check' && (offTrack || (!activeGoal && target!=null) || sinceContact==null || sinceContact >= +state.settings.ciDays);
   const streak = streakDays(s.id);
   const prev = prevUpload() && prevUpload().rows[s.id];
   const change = prev && prev.P>0 && p!=null ? p - prev.A/prev.P*100 : null;
@@ -1684,7 +1684,12 @@ $('ttCopy').onclick = () => {
   const nm = s => s.name.split(', ').reverse().join(' ');
   const txt = out.length ? 'Tutor conversations still to log this week:\n\n' + out.map(g => `${g.code} (${tutorKnown(g.code)?tutorName(g.code):'no tutor matched'}): ${g.out.map(x=>nm(x.s)).join(', ')}`).join('\n') : 'All tutor conversations are logged this week.';
   const done = () => { $('ttMsg').textContent = out.length ? `✓ Copied a reminder listing ${out.length} form${out.length===1?'':'s'}. Paste it into an email or Teams.` : '✓ Copied: everyone is logged.'; };
-  try { navigator.clipboard.writeText(txt).then(done, () => { $('ttMsg').textContent = txt; }); } catch(err){ $('ttMsg').textContent = txt; }
+  const fallback = () => {   // Apps Script's frame can block the clipboard: copy through a hidden text box instead
+    const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch(err){}
+    ta.remove(); if(ok) done(); else $('ttMsg').textContent = txt;
+  };
+  try { navigator.clipboard.writeText(txt).then(done, fallback); } catch(err){ fallback(); }
 };
 
 /* ---------- weekly summary ---------- */
