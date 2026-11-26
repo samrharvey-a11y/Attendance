@@ -341,7 +341,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .gchip.auto{border:1px solid var(--line);background:#f3f4f6;color:var(--ink);cursor:default}
 .gchip small{font-weight:400;color:var(--muted)}
 
-.grprow{display:grid;grid-template-columns:minmax(140px,200px) minmax(190px,260px) minmax(0,1fr) auto auto;gap:8px 10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f3}
+.grprow{display:grid;grid-template-columns:minmax(140px,200px) minmax(190px,260px) minmax(0,1fr) auto auto auto;gap:8px 10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f3}
 .grprow input[type=number]{width:62px;padding:4px 6px}
 .grprule{font-size:13.5px}
 @media (max-width:700px){.grprow{grid-template-columns:1fr auto}.grprow select,.grprule{grid-column:1/-1}}
@@ -363,6 +363,27 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 #viewAs option,#viewAs optgroup{color:var(--ink);background:#fff}
 .viewing{background:var(--gold);color:#3a2b00;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
 @media (max-width:700px){#viewAs{max-width:120px}}
+
+.stale{background:var(--bad-soft);color:var(--bad);border:1px solid #efc2bf;border-radius:8px;padding:10px 14px;margin:0 0 14px;font-size:14px}
+.stale b{font-weight:700}
+.jumpchip{border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:1px 10px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;margin-left:4px}
+.stat[data-jump],#tgYears td[data-jump]{cursor:pointer}
+.stat[data-jump]:hover{border-color:var(--accent);background:#fafbfd}
+.stat[data-jump] .k::after{content:' ›';color:var(--accent)}
+#tgYears td[data-jump]{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.bulkbar .spacer{flex:1}
+.bulkbar.on{position:fixed;top:auto;left:50%;bottom:16px;transform:translateX(-50%);width:min(1100px,calc(100% - 24px));box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:30;margin:0}
+#vpWrap.bulkon{padding-bottom:70px}
+@media (max-width:700px){.bulkbar.on{bottom:calc(72px + env(safe-area-inset-bottom))}}
+.card{touch-action:pan-y;position:relative}
+.card.swiping{transition:none;background:linear-gradient(90deg,var(--ok-soft),#fff 70%)}
+.card.swiping::after{content:'✓ Let go to log a check-in';position:absolute;left:-150px;top:50%;transform:translateY(-50%);width:140px;color:var(--ok);font-weight:700;font-size:12.5px;text-align:right;opacity:var(--sw,0)}
+.card.swiped{transition:transform .18s ease}
+.grpimp{grid-column:1/-1;border:1px dashed var(--line);border-radius:8px;padding:10px 12px;margin-top:6px;background:#fafbfd}
+.grpimp textarea{min-height:90px}
+.grpimp .row{margin-top:8px}
+.impres{font-size:13px;margin-top:8px}
+.impres ul{margin:4px 0 0;padding-left:18px;max-height:140px;overflow:auto}
 
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
@@ -430,6 +451,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 </header>
 
 <main>
+  <div class="stale" id="staleBar" style="display:none"></div>
   <!-- STUDENTS -->
   <section id="s-lists" class="on">
     <div class="topline" id="databar"></div>
@@ -567,7 +589,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 
     <div class="panel">
       <h2>Groups</h2>
-      <p class="hint">Automatic groups fill themselves from each day's figures, in every year group. Manual groups are the VP's choice: add students from the Students table (tick them, then "Add to group") or from a student's panel.</p>
+      <p class="hint">Automatic groups fill themselves from each day's figures, in every year group. Manual groups are the VP's choice: add students from the Students table (tick them, then "Add to group"), from a student's panel, or with <b>Add from a list</b> (paste names or choose a spreadsheet).</p>
       <div id="grpEdit"></div>
       <div class="row" style="margin-top:10px"><button class="btn" id="grpAdd">Add a group</button><span class="hint" id="grpSetHint" style="margin:0"></span></div>
     </div>
@@ -1224,8 +1246,9 @@ function renderLists(){
   $('c-new').textContent = counts.new; $('c-reward').textContent = counts.reward;
   $('c-check').textContent = counts.check;
   const onList = all.filter(x=>x.f.list).length;
+  renderStale();
   $('databar').innerHTML = esc(`${daysLeft()} school days left · data from ${nice(dataDate())}`) + (API && user.role==='vp' && state.importError ? ` · <span style="color:var(--bad)">⚠ Synergy import failed: see Settings</span>` : '');
-  $('listhint').textContent = LIST_HINT[curList].replace('{n}', state.settings.ciDays);
+  $('listhint').innerHTML = esc(LIST_HINT[curList].replace('{n}', state.settings.ciDays)) + (jumpFilter==='declining' ? ' <button class="jumpchip" id="jumpClear">Declining only ✕</button>' : '');
   const nf = ['fYear','fTutor','fBand','fBlock','fGroup'].filter(id=>$(id).value && $(id).style.display!=='none').length + ($('fDue').checked&&curList==='check'?1:0);
   $('fBtn').textContent = nf ? 'Filter ('+nf+')' : 'Filter';
   $('dueWrap').style.display = curList==='check' ? '' : 'none';
@@ -1238,6 +1261,7 @@ function renderLists(){
   fillSelect($('fTutor'), tutors, 'All tutor groups');
   const q = $('q').value.trim().toLowerCase(), ft = $('fTutor').value, fb = $('fBand').value, fd = $('fDue').checked;
   const isVP = user.role==='vp';
+  if(isVP && !user.viewing && !vpRestored){ restoreVPView(); }
   $('segAll').style.display = isVP ? '' : 'none'; $('c-all').textContent = all.length;
   if(!isVP && curList==='all') curList = 'new';
   $('fSort').style.display = isVP ? 'none' : '';
@@ -1247,6 +1271,7 @@ function renderLists(){
   if(ft) rows = rows.filter(x => x.s.tutor===ft);
   if(fb){ const [lo,hi] = fb.split('-').map(Number); rows = rows.filter(x => x.f.p>=lo && x.f.p<hi); }
   if(curList==='check' && fd) rows = rows.filter(x => x.f.checkDue);
+  if(jumpFilter==='declining') rows = rows.filter(x => x.f.offTrack);
   const fg = $('fGroup').value; if(fg==='da') rows = rows.filter(x => x.s.da); else if(fg==='any') rows = rows.filter(x => x.f.groups.length); else if(fg) rows = rows.filter(x => x.f.groups.some(g => g.id===fg));
   $('fBlock').style.display = hasTimetable() ? '' : 'none';
   { const v = $('fGroup').value; $('fGroup').innerHTML = '<option value="">All students</option><option value="da">DA only</option><option value="any">In any group</option>' + groupList().map(g => `<option value="${esc(g.id)}">${esc(g.name)}</option>`).join(''); $('fGroup').value = [...$('fGroup').options].some(o=>o.value===v) ? v : ''; }
@@ -1266,9 +1291,9 @@ function renderLists(){
     const da = a.f.reachable? a.f.need : 999, db = b.f.reachable? b.f.need : 999;
     return da-db || a.f.p-b.f.p;
   });
-  if(!rows.length){ $('cards').innerHTML = `<div class="empty">No students here${q||fy||ft||fb||fd||$('fBlock').value?' with these filters':''}.</div>`; return; }
+  if(!rows.length && !isVP){ $('cards').style.display=''; $('vpWrap').style.display='none'; $('cards').innerHTML = `<div class="empty">No students here${q||fy||ft||fb||fd||$('fBlock').value||jumpFilter?' with these filters':''}.</div>`; return; }
   $('cards').style.display = isVP ? 'none' : ''; $('vpWrap').style.display = isVP ? '' : 'none';
-  if(isVP){ renderVPTable(rows); return; }
+  if(isVP){ renderVPTable(rows); saveVPView(); return; }
   let lastG = null;
   const total = rows.length; rows = rows.slice(0, cardLimit);
   $('cards').innerHTML = rows.map(({s,f,w,loc}) => {
@@ -1355,7 +1380,8 @@ function renderBulkBar(n){
   $('bulkBar').innerHTML = vpSel.size
     ? `<b>${vpSel.size} ticked</b>${manual.length ? `<select id="bulkGroup">${opts}</select><button class="btn small primary" id="bulkAdd">Add to group</button><button class="btn small" id="bulkRemove">Remove from group</button>` : '<span class="cellmeta">Make a manual group in Settings first.</span>'}<button class="btn small" id="bulkClear">Untick all</button>`
     : `<span class="cellmeta">${n} students. Tick students to add them to a group${manual.length ? ' ('+manual.map(g=>esc(g.name)).join(', ')+')' : ''}. The automatic groups fill themselves.</span>`;
-  $('bulkBar').classList.toggle('on', vpSel.size > 0);
+  $('bulkBar').insertAdjacentHTML('beforeend', `<span class="spacer"></span><button class="btn small" id="vpCopy" title="Copy these ${n} rows to paste into Excel or Sheets">Copy table</button><button class="btn small" id="vpExport">Export ${n} (.xlsx)</button>`);
+  $('bulkBar').classList.toggle('on', vpSel.size > 0); $('vpWrap').classList.toggle('bulkon', vpSel.size > 0);
 }
 $('vpTable').onclick = e => {
   const th = e.target.closest('th[data-sort]');
@@ -1368,6 +1394,8 @@ $('vpTable').onclick = e => {
 $('vpMore').onclick = () => { vpLimit += 100; renderLists(); };
 $('bulkBar').onclick = e => {
   if(e.target.id==='bulkClear'){ vpSel.clear(); renderLists(); return; }
+  if(e.target.id==='vpExport'){ exportXLSX(); return; }
+  if(e.target.id==='vpCopy'){ copyTable(); return; }
   if(e.target.id==='bulkAdd' || e.target.id==='bulkRemove'){
     const g = groupById($('bulkGroup').value), on = e.target.id==='bulkAdd';
     const ids = [...vpSel].filter(id => on ? !(state.members[g.id]||{})[id] : !!(state.members[g.id]||{})[id]);
@@ -1377,6 +1405,165 @@ $('bulkBar').onclick = e => {
     vpSel.clear(); renderAll();
   }
 };
+
+/* ---------- old data warning ---------- */
+function renderStale(){
+  const el = $('staleBar'); if(!el) return;
+  const age = state.uploads.length ? schoolDaysBetween(dataDate(), TODAY) : 0;
+  if(age < 3){ el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.innerHTML = `<b>⚠ This data is ${age} school days old</b> (from ${esc(nice(dataDate()))}). Days needed and lists may be wrong. ` +
+    (user && user.role==='vp' ? (API ? 'Check the Synergy import in Settings, or upload a new file.' : 'Upload a new file in Settings.') : 'Let the Vice Principal know.');
+}
+
+/* ---------- VP export ---------- */
+const plain = h => String(h).replace(/<[^>]*>/g,'').trim();
+function exportRows(){
+  return [['ID','Student','Year','Form','DA','Attendance %','Change (points)','Next milestone','Days needed','Status','Groups','Last seen','Seen by']]
+    .concat(vpRows.map(({s,f}) => [s.id, s.name, s.year||'', s.tutor||'', s.da?'Y':'N', f.p==null?'':Math.round(f.p*10)/10, f.change==null?'':Math.round(f.change*10)/10,
+      f.target==null?'':f.target+'%', f.rewardDue?'Reward due':(f.reachable&&f.need!=null?f.need:''), plain(vpStatus(f)[0]), f.groups.map(g=>g.name).join(', '), f.last?f.last.date:'', f.last?(f.last.staff||''):'']));
+}
+function exportName(){ const g = $('fGroup').value, gn = g==='da'?'DA':g==='any'?'in a group':g?(groupById(g)||{}).name:''; return ['Attendance', gn, $('fYear').value, $('fTutor').value, TODAY].filter(Boolean).join(' ').replace(/[\\/:*?"<>|]/g,'-'); }
+async function exportXLSX(){
+  try {
+    const X = await loadXLSX(), aoa = exportRows(), ws = X.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [8,24,9,9,5,12,14,14,12,12,30,12,18].map(w=>({wch:w}));
+    ws['!autofilter'] = {ref: X.utils.encode_range({s:{r:0,c:0}, e:{r:aoa.length-1, c:aoa[0].length-1}})};
+    const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Students');
+    X.writeFile(wb, exportName()+'.xlsx');
+    toast(`Exported ${aoa.length-1} students`);
+  } catch(err){ toast('Couldn\'t make the file. Try "Copy table" instead.'); }
+}
+function copyTable(){
+  const txt = exportRows().map(r => r.map(v => String(v).replace(/\t|\n/g,' ')).join('\t')).join('\n');
+  const ok = () => toast(`Copied ${vpRows.length} students. Paste into Excel or Sheets.`);
+  const fb = () => { const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); let r=false; try{ r=document.execCommand('copy'); }catch(e){} ta.remove(); r ? ok() : toast('Copy was blocked by the browser.'); };
+  try { navigator.clipboard.writeText(txt).then(ok, fb); } catch(e){ fb(); }
+}
+
+/* ---------- VP: remember filters and sort ---------- */
+const VPVIEW_KEY = 'attendanceMilestones.vpView';
+let vpRestored = false;
+function saveVPView(){
+  if(!user || user.role!=='vp' || user.viewing || !vpRestored) return;
+  try { localStorage.setItem(VPVIEW_KEY, JSON.stringify({sort:vpSort, list:curList, fYear:$('fYear').value, fTutor:$('fTutor').value, fBand:$('fBand').value, fGroup:$('fGroup').value})); } catch(e){}
+}
+function restoreVPView(){
+  vpRestored = true;
+  let v = null; try { v = JSON.parse(localStorage.getItem(VPVIEW_KEY)||'null'); } catch(e){}
+  if(!v) return;
+  if(v.sort && VP_COLS.some(c=>c[0]===v.sort.k)) vpSort = v.sort;
+  if(['new','reward','check','all'].includes(v.list)){ curList = v.list; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList)); }
+  const setSel = (id, val) => { const e = $(id); if(!val) return; if(![...e.options].some(o=>o.value===val)) e.insertAdjacentHTML('beforeend', `<option value="${esc(val)}">${esc(val)}</option>`); e.value = val; };
+  setSel('fYear', v.fYear); setSel('fTutor', v.fTutor); setSel('fBand', v.fBand); setSel('fGroup', v.fGroup);
+}
+
+/* ---------- jump from Monitoring numbers to the matching list ---------- */
+let jumpFilter = null;
+function jumpTo(kind, extra){
+  const isVP = user.role==='vp';
+  if(kind==='tutors'){ if(document.querySelector('#nav button[data-s=tutors]').style.display!=='none'){ showSection('tutors'); window.scrollTo(0,0); renderAll(); } return; }
+  ['q'].forEach(id => $(id).value=''); ['fTutor','fBand','fBlock','fGroup'].forEach(id => $(id).value='');
+  if(!isPastoral(user.role)) $('fYear').value = '';
+  $('fDue').checked = false; jumpFilter = null;
+  curList = {new:'new', reward:'reward', due:'check', declining:'check', group: isVP?'all':'check', groupyear: isVP?'all':'check'}[kind] || 'new';
+  if(kind==='due') $('fDue').checked = true;
+  if(kind==='declining') jumpFilter = 'declining';
+  if(kind==='group' || kind==='groupyear'){
+    const g = extra && extra.g || 'any';
+    if(![...$('fGroup').options].some(o=>o.value===g)) $('fGroup').insertAdjacentHTML('beforeend', `<option value="${esc(g)}"></option>`);
+    $('fGroup').value = g;
+    if(extra && extra.y && !isPastoral(user.role)){ if(![...$('fYear').options].some(o=>o.value===extra.y)) $('fYear').insertAdjacentHTML('beforeend', `<option>${esc(extra.y)}</option>`); $('fYear').value = extra.y; }
+  }
+  document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList));
+  cardLimit = 50; vpLimit = 100; closeStudent(); showSection('lists'); window.scrollTo(0,0); renderAll();
+}
+document.addEventListener('click', e => {
+  const j = e.target.closest('[data-jump]'); if(j){ jumpTo(j.dataset.jump, {g:j.dataset.g, y:j.dataset.y}); return; }
+  if(e.target.id==='jumpClear'){ jumpFilter = null; renderLists(); }
+});
+
+/* ---------- phones: swipe a card right to log a check-in ---------- */
+let swipedAt = 0;
+{ let sx=null, sy=0, card=null, dx=0, horiz=null;
+  const cards = $('cards');
+  cards.addEventListener('pointerdown', e => { if(e.pointerType!=='touch') return; const c = e.target.closest('.card'); if(!c) return; card=c; sx=e.clientX; sy=e.clientY; dx=0; horiz=null; });
+  cards.addEventListener('pointermove', e => { if(sx==null || !card) return;
+    const mx = e.clientX-sx, my = e.clientY-sy;
+    if(horiz==null && (Math.abs(mx)>8 || Math.abs(my)>8)) horiz = Math.abs(mx) > Math.abs(my)*1.3 && mx>0;
+    if(!horiz) return;
+    dx = Math.max(0, Math.min(170, mx)); card.classList.add('swiping'); card.style.transform = `translateX(${dx}px)`; card.style.setProperty('--sw', Math.min(1, dx/100)); });
+  const end = () => { if(sx==null) return; const c = card, d = dx, was = horiz; sx=null; card=null;
+    if(!c || !was) return;
+    swipedAt = Date.now(); c.classList.remove('swiping'); c.classList.add('swiped'); c.style.transform = '';
+    setTimeout(() => c.classList.remove('swiped'), 200);
+    if(d >= 100){ const s = curUpload().rows[c.dataset.id]; if(!s) return;
+      lastAction = addLog({sid:s.id, type:'checkin', date:TODAY, staff:user.name, t:Date.now()});
+      toast('Check-in logged for '+s.name.split(', ').reverse().join(' ')); renderAll(); } };
+  cards.addEventListener('pointerup', end); cards.addEventListener('pointercancel', end);
+}
+
+/* ---------- manual groups: add students from a list of names ---------- */
+let impGroup = null, impFound = null;
+const normN = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');
+function nameIndex(){
+  const ix = new Map(), add = (k, s) => { if(!k) return; (ix.get(k) || ix.set(k, []).get(k)).push(s); };
+  allStudents().forEach(s => { const [sur, fore=''] = s.name.split(',').map(x=>x.trim()); const f1 = fore.split(/\s+/)[0]||'';
+    add(normN(sur)+'|'+normN(fore), s); if(f1!==fore) add(normN(sur)+'|'+normN(f1), s); add('id|'+String(s.id).replace(/\D/g,'').replace(/^0+/,''), s); add('id|'+normN(s.id), s); });
+  return ix;
+}
+function matchNames(rows){
+  const ix = nameIndex(), found = new Map(), missing = [], unsure = [];
+  if(!rows.length) return {found:[], missing, unsure};
+  const head = rows[0].map(h => normN(h));
+  const col = re => head.findIndex(h => re.test(h));
+  let cSur = col(/^(surname|lastname|legalsurname|familyname)$/), cFore = col(/^(forename|firstname|legalforename|givenname|preferredforename)$/), cName = col(/^(name|studentname|student|fullname|pupil|pupilname)$/);
+  const cId = col(/^(studentid|id|admissionno|admno|upn|rnumber)$/), cYear = col(/^(year|yeargroup|yr|ncyear)$/), cForm = col(/^(form|regGroup|reggroup|tutor|tutorgroup|class|registrationgroup)$/i);
+  const hasHead = [cSur,cFore,cName,cId].some(i=>i>=0);
+  (hasHead ? rows.slice(1) : rows).forEach(r => {
+    const cells = r.map(x => String(x||'').trim()); if(!cells.some(Boolean)) return;
+    const label = cells.filter(Boolean).slice(0,3).join(' ');
+    let cands = [];
+    if(cId>=0 && cells[cId]) cands = ix.get('id|'+cells[cId].replace(/\D/g,'').replace(/^0+/,'')) || ix.get('id|'+normN(cells[cId])) || [];
+    if(!cands.length){
+      const keys = [];
+      if(cSur>=0 && cFore>=0) keys.push(normN(cells[cSur])+'|'+normN(cells[cFore]), normN(cells[cSur])+'|'+normN(cells[cFore].split(/\s+/)[0]));
+      else {
+        const txt = cName>=0 ? cells[cName] : cells.find(c => /[a-z]/i.test(c) && !/^(year|y)?\s*\d+[a-z]*$/i.test(c)) || '';
+        if(txt.includes(',')){ const [a,b=''] = txt.split(',').map(x=>x.trim()); keys.push(normN(a)+'|'+normN(b), normN(a)+'|'+normN(b.split(/\s+/)[0])); }
+        else { const w = txt.split(/\s+/).filter(Boolean);
+          for(let i=1;i<w.length;i++){ keys.push(normN(w.slice(i).join(''))+'|'+normN(w.slice(0,i).join(' ')), normN(w.slice(0,i).join(''))+'|'+normN(w.slice(i).join(' '))); }
+          keys.push(...keys.map(k => k.split('|')[0]+'|'+normN((txt.split(/\s+/)[0]||'')))); }
+      }
+      for(const k of keys){ const c = ix.get(k); if(c){ cands = c; break; } }
+      if(!cands.length && /^\d+$/.test(cells.find(Boolean)||'')) cands = ix.get('id|'+(cells.find(Boolean)).replace(/^0+/,'')) || [];
+    }
+    cands = [...new Set(cands)];
+    if(cands.length>1){ const yr = cYear>=0 ? yearNum(cells[cYear]) : null, fm = cForm>=0 ? normN(cells[cForm]) : null;
+      cands = cands.filter(s => (!yr || yearNum(s.year)===yr) && (!fm || normN(s.tutor)===fm || normN(s.tutor).startsWith(fm))); }
+    if(cands.length===1) found.set(String(cands[0].id), cands[0]);
+    else (cands.length ? unsure : missing).push(label);
+  });
+  return {found:[...found.values()], missing, unsure};
+}
+function renderImpResult(){
+  const el = document.querySelector('.grpimp .impres'); if(!el || !impFound) return;
+  const g = groupById(impGroup), m = state.members[impGroup]||{};
+  const fresh = impFound.found.filter(s => !m[String(s.id)]);
+  el.innerHTML = `<div class="msg ${impFound.missing.length||impFound.unsure.length?'warn':'ok'}">Found <b>${impFound.found.length}</b> student${impFound.found.length===1?'':'s'}` +
+    (impFound.found.length-fresh.length ? ` (${impFound.found.length-fresh.length} already in the group)` : '') + '.' +
+    (impFound.missing.length ? ` ⚠ ${impFound.missing.length} not found.` : '') + (impFound.unsure.length ? ` ⚠ ${impFound.unsure.length} match more than one student: add a year or form column.` : '') + `</div>` +
+    (impFound.missing.length ? `<details><summary>Not found (${impFound.missing.length})</summary><ul>${impFound.missing.slice(0,100).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>` : '') +
+    (impFound.unsure.length ? `<details><summary>More than one match (${impFound.unsure.length})</summary><ul>${impFound.unsure.slice(0,100).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>` : '') +
+    (fresh.length ? `<div class="row"><button class="btn primary" id="impAdd">Add ${fresh.length} to ${esc(g.name)}</button></div>` : '');
+}
+async function readNameFile(file){
+  if(/\.(csv|txt)$/i.test(file.name)){ const txt = await file.text(); return txt.split(/\r?\n/).map(l => l.includes('\t') ? l.split('\t') : l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c=>c.replace(/^"|"$/g,''))); }
+  const X = await loadXLSX(); const wb = X.read(await file.arrayBuffer(), {type:'array'});
+  return X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:'', raw:false});
+}
+// pasted text: one student per line; "Surname, Forename" stays as one cell unless tabs are used
+const pastedRows = txt => txt.split(/\r?\n/).map(l => l.includes('\t') ? l.split('\t') : [l]);
 
 /* ---------- detail sheet ---------- */
 let pickGoal = null, showPick = false;
@@ -1496,9 +1683,9 @@ function renderMonitor(){
   const tWin = all.filter(x=>x.f.tutorWin && isFormGroup(x.s.tutor)), tDone = tWin.filter(x=>x.f.tutorChat||x.f.tutorAway).length;
   const tgIn = all.filter(x=>x.f.groups.length).length;
   $('mStats').innerHTML = [
-    [all.filter(x=>x.f.list==='new').length,'new to the list, not met yet'],[overdue.length,'check-ins due'],[all.filter(x=>x.f.offTrack).length,'declining since last seen'],[all.filter(x=>x.f.list==='reward').length,'rewards due'],
-    [tgIn,'in a group'],[tWin.length? Math.round(tDone/tWin.length*100)+'%':'–','tutor list logged']
-  ].map(([v,k])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+    [all.filter(x=>x.f.list==='new').length,'new to the list, not met yet','new'],[overdue.length,'check-ins due','due'],[all.filter(x=>x.f.offTrack && x.f.list==='check').length,'declining since last seen','declining'],[all.filter(x=>x.f.list==='reward').length,'rewards due','reward'],
+    [tgIn,'in a group','group'],[tWin.length? Math.round(tDone/tWin.length*100)+'%':'–','tutor list logged', document.querySelector('#nav button[data-s=tutors]').style.display!=='none' ? 'tutors' : '']
+  ].map(([v,k,j])=>`<div class="stat"${j?` data-jump="${j}" title="Show these students"`:''}><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
   renderPastoralMonitor(all); renderTargetMonitor(all);
   const byType = {}; rewardsAll.filter(l => students().some(s=>s.id===l.sid)).forEach(l => { const k = l.reward || 'Not recorded'; byType[k] = (byType[k]||0)+1; });
   $('mRewardTypes').innerHTML = `<thead><tr><th>Reward</th><th class="num">Given</th></tr></thead><tbody>` + (Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="num">${v}</td></tr>`).join('') || '<tr><td colspan="2" class="cellmeta">None yet.</td></tr>') + '</tbody>';
@@ -1590,7 +1777,7 @@ function renderTargetMonitor(all){
   const years = [...new Set(mem.map(x => x.s.year||'No year'))].sort((a,b)=>yearNum(a)-yearNum(b));
   $('tgYears').innerHTML = years.length ? `<thead><tr><th>Year</th><th class="num">In group</th>${manual?'<th class="num">Completed</th>':''}<th class="num">Improving</th><th class="num">Declining</th><th class="num">Seen recently</th></tr></thead><tbody>` +
     years.map(y => { const r = mem.filter(x => (x.s.year||'No year')===y), c = k => r.filter(x=>x.st===k).length;
-      return `<tr><td>${esc(y)}</td><td class="num">${r.length}</td>${manual?`<td class="num">${c('done')}</td>`:''}<td class="num">${c('up')}</td><td class="num">${c('down')}</td><td class="num">${r.filter(x=>x.f.ever && !x.f.checkDue).length}</td></tr>`; }).join('') + '</tbody>' : '';
+      return `<tr><td>${esc(y)}</td><td class="num"${r.length?` data-jump="groupyear" data-g="${esc(g.id)}" data-y="${esc(y)}" title="Show them"`:''}>${r.length}</td>${manual?`<td class="num">${c('done')}</td>`:''}<td class="num">${c('up')}</td><td class="num">${c('down')}</td><td class="num">${r.filter(x=>x.f.ever && !x.f.checkDue).length}</td></tr>`; }).join('') + '</tbody>' : '';
   const f = $('tgFilter').value;
   $('tgFilter').style.display = manual ? '' : 'none';
   let rows = !manual || f==='all' ? mem : f==='done' ? mem.filter(x=>x.st==='done') : mem.filter(x=>x.st!=='done');
@@ -2015,12 +2202,12 @@ function showSection(id){
 $('nav').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   if(b.dataset.s==='settings') importCfgLoaded = false;   // fresh import status each time Settings opens
   showSection(b.dataset.s); closeStudent(); window.scrollTo(0,0); renderAll(); };
-$('seg').onclick = e => { const b = e.target.closest('button'); if(!b) return; curList = b.dataset.l; cardLimit = 50; vpLimit = 100;
+$('seg').onclick = e => { const b = e.target.closest('button'); if(!b) return; curList = b.dataset.l; jumpFilter = null; cardLimit = 50; vpLimit = 100;
   document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b)); renderLists(); };
 ['q','fYear','fTutor','fBand','fBlock','fGroup','fSort','fDue'].forEach(id => $(id).addEventListener('input', () => { cardLimit = 50; vpLimit = 100; renderLists(); }));
 let sortTouched = false; $('fSort').addEventListener('input', () => sortTouched = true);
 $('fBtn').onclick = () => { const b = $('filterBox'); b.hidden = !b.hidden; $('fBtn').classList.toggle('on', !b.hidden); };
-$('cards').onclick = e => { if(e.target.id==='moreCards'){ cardLimit += 50; renderLists(); return; } const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id); };
+$('cards').onclick = e => { if(Date.now()-swipedAt < 450) return; if(e.target.id==='moreCards'){ cardLimit += 50; renderLists(); return; } const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id); };
 $('mOver').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
 $('tgRows').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
 $('shade').onclick = closeStudent; $('dClose').onclick = closeStudent;
@@ -2048,10 +2235,18 @@ function renderGroupEditor(){
       <select data-gi="${esc(g.id)}" data-k="type"><option value="manual"${g.type==='manual'?' selected':''}>Manual</option><option value="near"${g.type==='near'?' selected':''}>Automatic: close to a target</option><option value="protect"${g.type==='protect'?' selected':''}>Automatic: keep above a target</option></select>
       <span class="grprule">${rule}</span>
       <span class="cellmeta">${n} ${n===1?'student':'students'}</span>
-      <button class="btn small danger" data-gdel="${esc(g.id)}">✕</button></div>`;
+      ${isManualGroup(g) ? `<button class="btn small" data-gimp="${esc(g.id)}">${impGroup===g.id?'Close list':'Add from a list'}</button>` :'<span></span>'}
+      <button class="btn small danger" data-gdel="${esc(g.id)}">✕</button>
+      ${impGroup===g.id ? `<div class="grpimp"><p class="hint" style="margin:0 0 6px">Paste names (one per line, e.g. <b>Smith, Ava</b> or <b>Ava Smith</b>) or choose a spreadsheet. Columns called <b>Surname</b>, <b>Forename</b>, <b>ID</b>, <b>Year</b> or <b>Form</b> are used if there are headings.</p>
+        <textarea id="impText" placeholder="Smith, Ava&#10;Jones, Leo"></textarea>
+        <div class="row"><button class="btn small primary" id="impCheck">Check names</button><label class="btn small">Choose a file (.xlsx, .csv)<input type="file" id="impFile" accept=".xlsx,.xls,.csv,.txt" hidden></label></div>
+        <div class="impres"></div></div>` : ''}</div>`;
   }).join('');
 }
-$('grpEdit').onchange = e => {
+$('grpEdit').onchange = async e => {
+  if(e.target.id==='impFile'){ const f = e.target.files[0]; if(!f) return;
+    try { impFound = matchNames(await readNameFile(f)); renderImpResult(); } catch(err){ document.querySelector('.grpimp .impres').innerHTML = '<div class="msg bad">⚠ Couldn\'t read that file. Try saving it as .xlsx or .csv.</div>'; }
+    e.target.value = ''; return; }
   const el = e.target.closest('[data-gi]'); if(!el) return;
   const g = groupById(el.dataset.gi), k = el.dataset.k;
   if(k==='name') g.name = el.value.trim() || g.name;
@@ -2061,6 +2256,11 @@ $('grpEdit').onchange = e => {
 };
 let gdelArmed = null;
 $('grpEdit').onclick = e => {
+  const gi = e.target.closest('[data-gimp]'); if(gi){ impGroup = impGroup===gi.dataset.gimp ? null : gi.dataset.gimp; impFound = null; renderGroupEditor(); return; }
+  if(e.target.id==='impCheck'){ impFound = matchNames(pastedRows($('impText').value)); renderImpResult(); return; }
+  if(e.target.id==='impAdd'){ const m = state.members[impGroup]||{}, ids = impFound.found.map(s=>String(s.id)).filter(id => !m[id]);
+    const n = setTargets(ids, true, impGroup); lastAction = {groupChange:true, ids, on:true, group:impGroup};
+    toast(`${n} added to ${groupById(impGroup).name}`); impFound = null; impGroup = null; renderAll(); return; }
   const b = e.target.closest('[data-gdel]'); if(!b) return;
   const g = groupById(b.dataset.gdel), n = Object.keys(state.members[g.id]||{}).length;
   if(gdelArmed !== g.id){ gdelArmed = g.id; b.textContent = n ? 'Delete, and remove '+n+'?' : 'Delete?'; setTimeout(() => { if(gdelArmed===g.id){ gdelArmed = null; renderGroupEditor(); } }, 4000); return; }
