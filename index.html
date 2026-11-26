@@ -823,6 +823,19 @@ function whereNow(s){
   }
   return null;
 }
+// the next lesson that has a room: used to group students when nothing is on (evenings, form time, break, lunch)
+function nextRoomed(s){
+  if(!hasTimetable()) return null;
+  const c = clockNow(); let day = c.day, mins = c.mins;
+  for(let i=0;i<8;i++){
+    if(day>=1&&day<=5){
+      for(const p of PERIODS){ if(toMin(p.s)<=mins || ['Reg','Break','Lunch'].includes(p.k)) continue;
+        const l = lessonFor(s,day,p.k); if(l.room) return {now:false, per:p.k, day, ...l}; }
+    }
+    day = (day+1)%7; mins = -1;
+  }
+  return null;
+}
 const ZONES = {N:'North',E:'East',S:'South',W:'West',C:'College',G:'Geography'}, ZORDER = 'NESWCG';
 const FLOORS = ['Ground floor','First floor','Second floor'], FSHORT = ['ground','1st','2nd'];
 function roomLoc(room){
@@ -1253,12 +1266,15 @@ function renderLists(){
   if(!hasTimetable() && $('fSort').value==='loc') $('fSort').value = 'days';
   if(hasTimetable() && !sortTouched) $('fSort').value = 'loc';
   $('fSort').querySelector('option[value=loc]').hidden = !hasTimetable();
-  rows.forEach(x => { x.w = whereNow(x.s); x.loc = x.w && x.w.room ? roomLoc(x.w.room) : null; });
+  let lookAhead = false;
+  rows.forEach(x => { x.w = whereNow(x.s); x.lw = x.w;
+    if(x.w && !x.w.room && (!x.w.now || ['Reg','Break','Lunch'].includes(x.w.per))){ const n = nextRoomed(x.s); if(n){ x.lw = n; lookAhead = true; } }
+    x.loc = x.lw && x.lw.room ? roomLoc(x.lw.room) : null; });
   const fbk = $('fBlock').value; if(fbk) rows = rows.filter(x => x.loc && x.loc.z===fbk);
   const lkey = l => l ? ZORDER.indexOf(l.z)*10 + l.f : 999;
   const sort = $('fSort').value;
   rows.sort((a,b) => {
-    if(sort==='loc') return lkey(a.loc)-lkey(b.loc) || String(a.w&&a.w.room).localeCompare(String(b.w&&b.w.room),undefined,{numeric:true}) || a.s.name.localeCompare(b.s.name);
+    if(sort==='loc') return lkey(a.loc)-lkey(b.loc) || String(a.lw&&a.lw.room).localeCompare(String(b.lw&&b.lw.room),undefined,{numeric:true}) || a.s.name.localeCompare(b.s.name);
     if(curList==='check' && a.f.offTrack!==b.f.offTrack) return a.f.offTrack?-1:1;
     if(curList==='check' && a.f.checkDue!==b.f.checkDue) return a.f.checkDue?-1:1;
     if(sort==='pct') return a.f.p-b.f.p;
@@ -1271,15 +1287,15 @@ function renderLists(){
   if(isVP){ renderVPTable(rows); return; }
   let lastG = null;
   const total = rows.length; rows = rows.slice(0, cardLimit);
-  $('cards').innerHTML = rows.map(({s,f,w,loc}) => {
+  $('cards').innerHTML = rows.map(({s,f,w,lw,loc}) => {
     let head = '';
-    if(sort==='loc'){ const g = lkey(loc); if(g!==lastG){ lastG = g; const n = rows.filter(x=>lkey(x.loc)===g).length; head = `<div class="grouphead">${loc ? ZONES[loc.z]+' block · '+FLOORS[loc.f] : 'No room (form time, PE, study periods and others)'} <span>${n}</span></div>`; } }
+    if(sort==='loc'){ const g = lkey(loc); if(g!==lastG){ lastG = g; const n = rows.filter(x=>lkey(x.loc)===g).length; head = `<div class="grouphead">${loc ? ZONES[loc.z]+' block · '+FLOORS[loc.f]+(lookAhead?' <em>· next lesson</em>':'') : 'No room right now (PE, study periods, gaps in the timetable)'} <span>${n}</span></div>`; } }
     const gs = user.role!=='tutor' ? f.groups : [];
     return head + `<button class="card${String(s.id)===String(selId)?' sel':''}${gs.length?' ingroup':''}" data-id="${esc(s.id)}"${gs.length?` style="border-left-color:${groupCol(gs[0])[0]}"`:''}>
       ${gs.length ? `<div class="gband">${gs.map(gPill).join('')}</div>` : ''}<div class="nm">${esc(s.name)}</div><div class="pct">${fmtPct(f.p)}</div>
       <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}</div>${curList==='check'?statusShort(f):'<span></span>'}
       <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}</div>
-      ${hasTimetable() ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
+      ${hasTimetable() ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}${lw && lw!==w ? ' <span class="cellmeta">· then '+(lw.day!==clockNow().day?DAYNAME[lw.day].slice(0,3)+' ':'')+lw.per+':</span> '+placeHTML(lw) : ''}</span><span class="loc">${lw?locLabel(lw.room):''}</span></div>` : ''}
     </button>`; }).join('') + (total > rows.length ? `<button class="btn morebtn" id="moreCards">Show ${Math.min(50, total-rows.length)} more (${total-rows.length} not shown)</button>` : '');
 }
 function changeTag(c){
