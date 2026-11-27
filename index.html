@@ -415,6 +415,37 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .grprw{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:-2px}
 .grprw .gchip{font-size:12.5px;padding:3px 10px}
 
+.dots{display:inline-flex;gap:3px;vertical-align:middle;margin-left:2px}
+.dots i{width:9px;height:9px;border-radius:50%;background:#e3e6eb;display:inline-block}
+.dots i.on{background:var(--ok)}
+.dots i.next{background:#fff;box-shadow:inset 0 0 0 2px var(--warn)}
+.daybar{margin:0 0 8px}
+.dbtxt{font-size:13.5px;margin-bottom:4px}
+.dbtrack{height:8px;border-radius:999px;background:#e9ecf1;overflow:hidden}
+.dbtrack i{display:block;height:100%;background:var(--ok);border-radius:999px;transition:width .3s}
+.setjump{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px;position:sticky;top:64px;z-index:4;background:var(--bg);padding:6px 0}
+.setjump button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.setjump button:hover{border-color:var(--accent);color:var(--accent)}
+.setjump .linkish{border-style:dashed;color:var(--muted)}
+.panel.cp > h2{cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin:0;user-select:none}
+.panel.cp > h2::after{content:'▾';color:var(--muted);font-size:14px;transition:transform .15s}
+.panel.cp.closed > h2::after{transform:rotate(-90deg)}
+.panel.cp:not(.closed) > h2{margin-bottom:6px}
+.panel.cp.closed{padding-top:14px;padding-bottom:14px}
+.panel.cp.closed > :not(h2){display:none!important}
+@media (max-width:700px){.setjump{top:56px}}
+
+.covtag{font-size:11.5px;font-weight:700;color:#0f5f66;background:#e0f4f5;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.covnote{font-size:13.5px;background:#e0f4f5;color:#0b4c52;border-radius:8px;padding:8px 12px;margin:0 0 8px}
+.covrow{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;border-bottom:1px solid #eef0f3;padding:10px 0}
+.covto{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.covchip{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:13px;background:#fff}
+.covform{border:1px dashed var(--line);border-radius:10px;padding:12px;margin-top:10px;background:#fafbfd}
+.covform select{max-width:100%}
+.covline{margin:4px 0}
+.covline input[type=number]{width:70px}
+.bad-t{color:var(--bad);font-weight:600}
+
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
 #login.on{display:block}
@@ -492,6 +523,8 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       <button data-l="check"><span>Check-in</span><span class="count" id="c-check">0</span></button>
       <button data-l="all" id="segAll" style="display:none"><span>Everyone</span><span class="count" id="c-all">0</span></button>
     </div>
+    <div class="covnote" id="covNote" style="display:none"></div>
+    <div class="daybar" id="dayBar"></div>
     <p class="listhint" id="listhint"></p>
     <div class="searchrow">
       <input type="search" id="q" placeholder="Search">
@@ -614,6 +647,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   <!-- SETTINGS -->
   <section id="s-settings">
     <div class="stephead"><h2>Settings</h2></div>
+    <nav class="setjump" id="setJump"></nav>
 
     <div class="panel">
       <h2>Who goes on the list</h2>
@@ -661,6 +695,13 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       <p class="hint">Learning leaders and pastoral leaders see their own year group. Everyone else is a tutor: they're matched to their form from the staff codes below, or pick one if they aren't in the list.</p>
       <div class="scroll"><table class="edit-table" id="staffTable"></table></div>
       <div class="row" style="margin-top:10px"><button class="btn" id="staffAdd">Add a person</button><span class="grow"></span><span class="hint" id="staffMsg" style="margin:0"></span></div>
+    </div>
+
+    <div class="panel" id="coverPanel">
+      <h2>Cover for absent staff</h2>
+      <p class="hint">If someone is off for a while, share their students between other staff. Each student is given to one person, by percentage, and stays with them until the cover ends. The students show up in that person's lists marked <span class="covtag">Covering</span>. A Learning or Pastoral Leader's year can go to other leaders; a tutor's form can go to other tutors.</p>
+      <div id="covList"></div>
+      <div id="covForm"></div>
     </div>
 
     <div class="panel">
@@ -796,6 +837,7 @@ const tutorName = code => {
   const sc = state && state.staffCodes; if(sc){ const n = sc.filter(r => formCodes(code).includes(r[0])).map(r => prettyName(r[1])); if(n.length) return n.join(' & '); }
   return mockTutorName(code);
 };
+const mockTutorEmail = code => 'tutor.'+String(code).toLowerCase()+'@rainford.example';
 const mockTutorName = code => { const h = hashStr(code); return TITLES[h%TITLES.length]+' '+TSUR[(h>>>3)%TSUR.length]; };
 const pastoralName = y => (y||'No year')+' Pastoral'; // only used for old saved logs
 const isFormGroup = code => code && !/REFLECT|^CC/i.test(code);
@@ -1111,7 +1153,7 @@ function bootFromServer(){
     // rebuild each day's rows from today's student details plus the compact history
     const info0 = {}; (b.current||[]).forEach(s => info0[s.id] = s);
     const uploads = (b.snaps||[]).map(sn => { const rows = {}; Object.keys(sn.d).forEach(id => { const c = info0[id]; if(c) rows[id] = {...c, P:sn.d[id][0], A:sn.d[id][1], u: sn.d[id].length > 2 ? sn.d[id][2] : null}; }); return {date:sn.date, rows}; });
-    state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], members:b.members||{}, staff:b.staff||[], tutors:b.tutors||{}, lastImport:b.lastImport||'', staffCodesCount: b.staffCodes ? b.staffCodes.count : 0, importError:b.importError||''};
+    state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], members:b.members||{}, staff:b.staff||[], people:b.people||[], cover:b.cover||{}, tutors:b.tutors||{}, lastImport:b.lastImport||'', staffCodesCount: b.staffCodes ? b.staffCodes.count : 0, importError:b.importError||''};
     user = b.user; viewOptions = b.viewOptions || null;
     normaliseState();
     TT = b.tt ? buildTT(b.tt.classes, b.tt.map) : null; TT_META = b.tt ? b.tt.meta : null;
@@ -1280,6 +1322,7 @@ function infoCalc(s){
 }
 
 const CONTACT_TYPES = ['checkin','goal','reward'];
+const dots = (done, total, what) => total ? `<span class="dots" title="${esc(what||'Check-in')} ${Math.min(done+1,total)} of ${total}">${Array.from({length:total}, (_,i) => `<i class="${i<done?'on':i===done?'next':''}"></i>`).join('')}</span>` : '';
 const DONE_LABEL = {checkin:'✓ Checked in', goal:'✓ Goal set', reward:'✓ Reward given', notin:'Not in today'};
 /* ---------- U codes: the attendance manager's list ---------- */
 function uFromDate(){ const st = state.settings; if(st.uFrom) return st.uFrom; const t = parseISO(TODAY); return (t.getMonth() >= 7 ? t.getFullYear() : t.getFullYear()-1) + '-09-01'; }
@@ -1320,10 +1363,34 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 function allStudents(){ return Object.values(curUpload().rows).filter(s => s.P>0); }
 function students(){
   const a = allStudents();
-  if(user && isPastoral(user.role)) return a.filter(s => (s.year||'No year')===user.year);
-  if(user && user.role==='tutor'){ const fs = user.forms || [user.tutor]; return a.filter(s => fs.includes(s.tutor)); }
+  if(user && isPastoral(user.role)){ const cov = coverMap(); return a.filter(s => (s.year||'No year')===user.year || cov.has(String(s.id))); }
+  if(user && user.role==='tutor'){ const fs = user.forms || [user.tutor], cov = coverMap(); return a.filter(s => fs.includes(s.tutor) || cov.has(String(s.id))); }
   return a;
 }
+/* ---------- cover for absent staff: the absent person's students in a fixed shuffled order, cut into blocks by percentage (same rule as the server) ---------- */
+const bucket = id => hashStr(String(id));
+function coverSplit(d, rows){   // -> [{email, name, pct, ids:Set}] for each person covering
+  const inScope = fromScope(d.from);
+  const list = rows.filter(inScope).sort((a,b) => bucket(a.id)-bucket(b.id) || String(a.id).localeCompare(String(b.id)));
+  let cum = 0, start = 0;
+  return (d.to||[]).map(x => { cum += (+x.pct||0); const end = Math.min(list.length, Math.round(list.length * cum / 100));
+    const r = {email:String(x.email).toLowerCase(), name:x.name, pct:+x.pct||0, ids:new Set(list.slice(start, end).map(s => String(s.id)))}; start = end; return r; });
+}
+function fromScope(f){ if(!f) return () => false; return f.role==='tutor' ? s => (f.forms||[]).includes(s.tutor) : s => (s.year||'')===f.year; }
+function coverMap(){
+  if(MEMO.cover) return MEMO.cover;
+  const m = new Map(); MEMO.cover = m;
+  if(!user || !user.email || user.viewing || vpLike(user.role)) return m;
+  if(API){ Object.entries(state.cover||{}).forEach(([id, c]) => m.set(String(id), c)); return m; }   // the server works out the split
+  const me = String(user.email).toLowerCase();
+  (state.settings.delegations||[]).forEach(d => {
+    if(!(d.to||[]).some(x => String(x.email).toLowerCase()===me)) return;
+    const mine = coverSplit(d, allStudents()).find(r => r.email===me);
+    mine.ids.forEach(id => m.set(id, {from:d.from, pct:mine.pct}));
+  });
+  return m;
+}
+const covTag = s => { const c = coverMap().get(String(s.id)); return c ? ` <span class="covtag" title="You're covering ${esc(c.from.name)}'s students">Covering ${esc(c.from.name)}</span>` : ''; };
 
 const LIST_HINT = {
   new:'On the list for the first time and not met yet. Meet them and set a goal, and they move to check-in.',
@@ -1367,6 +1434,12 @@ function renderLists(){
   all.forEach(x => { if(x.f.outstanding) counts[x.f.list]++; if(x.f.doneOn) doneN[x.f.doneOn]++; });
   $('c-new').textContent = counts.new; $('c-reward').textContent = counts.reward;
   $('c-check').textContent = counts.check;
+  { const cov = coverMap(), by = {}; cov.forEach(c => { const k = c.from.name+'|'+c.pct; by[k] = (by[k]||0)+1; });
+    const keys = Object.keys(by); $('covNote').style.display = keys.length ? '' : 'none';
+    $('covNote').innerHTML = keys.map(k => { const [n,pc] = k.split('|'); return `You're covering <b>${esc(n)}</b>'s students (${pc}%): ${by[k]} student${by[k]===1?'':'s'}, marked <span class="covtag">Covering</span>.`; }).join('<br>'); }
+  { const left = counts.new+counts.reward+counts.check, dn = doneN.new+doneN.reward+doneN.check, tot = left+dn;
+    $('dayBar').innerHTML = tot ? `<div class="dbtxt"><b>${dn} of ${tot}</b> done today${left ? ' · '+left+' to go' : ' · <span class="ok-t">all done ✓</span>'}</div><div class="dbtrack"><i style="width:${Math.round(dn/tot*100)}%"></i></div>` : '';
+    $('dayBar').style.display = tot ? '' : 'none'; }
   ['new','reward','check'].forEach(k => { const b = document.querySelector('#seg button[data-l='+k+'] .count'); b.classList.toggle('zero', !counts[k]); b.title = counts[k] ? counts[k]+' still to do today' : 'All done'+(doneN[k]?': '+doneN[k]+' ticked off today':''); if(!counts[k] && doneN[k]) b.textContent = '✓'; });
   const onList = all.filter(x=>x.f.list).length;
   renderStale();
@@ -1437,8 +1510,8 @@ function cardHTML({s,f,w}, done){
     : `<span class="cardside">${curList==='check'?statusShort(f):''}${f.outstanding?`<span class="notinbtn" data-notin="${esc(s.id)}" role="button" title="Not in school today: they come back tomorrow">Not in</span>`:''}</span>`;
   return `<button class="card${String(s.id)===String(selId)?' sel':''}${gs.length?' ingroup':''}${done?' done':''}" data-id="${esc(s.id)}"${gs.length?` style="border-left-color:${groupCol(gs[0])[0]}"`:''}>
       ${gs.length ? `<div class="gband">${gs.map(gPill).join('')}</div>` : ''}<div class="nm">${esc(s.name)}</div><div class="pct">${fmtPct(f.p)}</div>
-      <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}</div>${side}
-      <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}${curList==='check'&&f.ciMax&&!done?` <span class="cellmeta">· check-in ${Math.min(f.ciDone+1,f.ciMax)} of ${f.ciMax}</span>`:''}</div>
+      <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}${covTag(s)}</div>${side}
+      <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}${curList==='check'&&f.ciMax&&!done?' '+dots(f.ciDone, f.ciMax):''}</div>
       ${hasTimetable() && !done ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
     </button>`;
 }
@@ -1560,7 +1633,7 @@ function uCardHTML({s, u}, done){
   return `<button class="card${done?' done':''}" data-id="${esc(s.id)}">
     <div class="nm">${esc(s.name)}</div><div class="pct ucount">${u.now}<small> U</small></div>
     <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} · ${fmtPct(info(s).p)}</div>${when}
-    <div class="goal">Check-in ${u.step+1} of ${u.N}${u.rounds?' <span class="cellmeta">· round '+(u.rounds+1)+'</span>':''}${u.last?' <span class="cellmeta">· last '+nice(u.last.date)+'</span>':''}</div>
+    <div class="goal">${dots(u.step, u.N, 'U-code check-in')} <span class="cellmeta">check-in ${u.step+1} of ${u.N}</span>${u.rounds?' <span class="cellmeta">· round '+(u.rounds+1)+'</span>':''}${u.last?' <span class="cellmeta">· last '+nice(u.last.date)+'</span>':''}</div>
     ${hasTimetable() && !done ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
   </button>`;
 }
@@ -1625,6 +1698,102 @@ $('uMin').onchange = e => setSetting('uMin', Math.max(1, Math.round(+e.target.va
 $('uStepEdit').onchange = e => { const i = e.target.dataset.ustep; if(i==null) return; const a = uSteps(); a[+i] = Math.max(0, Math.round(+e.target.value||0)); setSetting('uSteps', a); };
 $('uStepEdit').onclick = e => { const b = e.target.closest('[data-ustepdel]'); if(!b) return; const a = uSteps(); a.splice(+b.dataset.ustepdel, 1); setSetting('uSteps', a); };
 $('uStepAdd').onclick = () => { const a = uSteps(); a.push(a.length ? a[a.length-1] || 5 : 0); setSetting('uSteps', a); };
+
+/* ---------- Settings: collapsible boxes with jump links ---------- */
+const SETOPEN_KEY = 'attendanceMilestones.settingsOpen';
+let setOpen = (() => { try { return JSON.parse(localStorage.getItem(SETOPEN_KEY)||'null'); } catch(e){ return null; } })() || {};
+function setupSettingsPanels(){
+  const panels = [...document.querySelectorAll('#s-settings > .panel')].filter(p => p.querySelector(':scope > h2'));
+  panels.forEach((p, i) => {
+    const h = p.querySelector(':scope > h2'), key = p.id || ('set'+i);
+    if(!p.id) p.id = key;
+    if(!p.classList.contains('cp')){
+      p.classList.add('cp'); h.setAttribute('role','button'); h.tabIndex = 0;
+      const toggle = () => { const open = p.classList.toggle('closed') === false; setOpen[key] = open; try { localStorage.setItem(SETOPEN_KEY, JSON.stringify(setOpen)); } catch(e){} };
+      h.addEventListener('click', toggle); h.addEventListener('keydown', e => { if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
+      if(!setOpen[key]) p.classList.add('closed');
+    }
+  });
+  $('setJump').innerHTML = panels.filter(p => p.style.display!=='none').map(p => `<button data-jumpto="${p.id}">${esc(p.querySelector(':scope > h2').textContent)}</button>`).join('')
+    + `<button class="linkish" id="setAll">${panels.every(p => !p.classList.contains('closed')) ? 'Close all' : 'Open all'}</button>`;
+}
+$('setJump').onclick = e => {
+  if(e.target.id==='setAll'){ const ps = [...document.querySelectorAll('#s-settings > .panel.cp')], openAll = ps.some(p => p.classList.contains('closed'));
+    ps.forEach(p => { p.classList.toggle('closed', !openAll); setOpen[p.id] = openAll; }); try { localStorage.setItem(SETOPEN_KEY, JSON.stringify(setOpen)); } catch(err){} setupSettingsPanels(); return; }
+  const b = e.target.closest('[data-jumpto]'); if(!b) return;
+  const p = $(b.dataset.jumpto); p.classList.remove('closed'); setOpen[p.id] = true; try { localStorage.setItem(SETOPEN_KEY, JSON.stringify(setOpen)); } catch(err){}
+  p.scrollIntoView({behavior:'smooth', block:'start'});
+};
+
+/* ---------- cover editor (VP) ---------- */
+let covEdit = null, covArmed = null;
+function peopleList(){
+  if(API) return state.people || [];
+  const lead = (state.staff||[]).filter(p => p.role!=='tutor').map(p => ({email:p.email, name:p.name, role:p.role, year:p.year}));
+  const forms = [...new Set(allStudents().map(s => s.tutor))].filter(isFormGroup).sort();
+  return lead.concat(forms.map(f => ({email:mockTutorEmail(f), name:tutorName(f), role:'tutor', forms:[f]})));
+}
+const personLabel = p => p.role==='tutor' ? `${p.name} (tutor, ${(p.forms||[]).join(' & ')})` : `${p.name} (${ROLE_NAMES[p.role]}${p.year?', '+p.year:''})`;
+function coverCounts(from, to){
+  const total = allStudents().filter(fromScope(from)).length;
+  return {total, each: coverSplit({from, to}, allStudents()).map(r => r.ids.size)};
+}
+let covDrawing = false;
+function renderCover(){
+  if(covDrawing) return; covDrawing = true;
+  try { renderCoverInner(); } finally { covDrawing = false; }
+}
+function renderCoverInner(){
+  const ds = state.settings.delegations || [], people = peopleList();
+  $('covList').innerHTML = ds.length ? ds.map((d,i) => { const c = coverCounts(d.from, d.to);
+    return `<div class="covrow"><div><b>${esc(d.from.name)}</b> <span class="cellmeta">${esc(d.from.role==='tutor' ? 'tutor, '+(d.from.forms||[]).join(' & ') : ROLE_NAMES[d.from.role]+', '+d.from.year)} · since ${nice(d.since)} · ${c.total} students</span>
+      <div class="covto">${d.to.map((x,k) => `<span class="covchip">${esc(x.name)} <b>${x.pct}%</b> <span class="cellmeta">${c.each[k]} students</span></span>`).join('')}</div></div>
+      <div class="row"><button class="btn small" data-covedit="${i}">Change</button><button class="btn small danger" data-covend="${i}">${covArmed===i?'Tap again to end':'End cover'}</button></div></div>`; }).join('')
+    : '<p class="cellmeta">Nobody is being covered.</p>';
+  if(!covEdit){ $('covForm').innerHTML = `<button class="btn small" id="covNew">Set up cover</button>`; return; }
+  const from = people.find(p => p.email===covEdit.from);
+  const pastoral = from && from.role!=='tutor';
+  const eligible = !from ? [] : people.filter(p => p.email!==from.email && (pastoral ? p.role!=='tutor' : p.role==='tutor'));
+  const taken = new Set(ds.filter((d,i) => i!==covEdit.index).map(d => d.from.email));
+  const opt = p => `<option value="${esc(p.email)}"${covEdit.from===p.email?' selected':''}>${esc(personLabel(p))}</option>`;
+  const total = covEdit.to.reduce((a,x) => a + (+x.pct||0), 0), dup = new Set(covEdit.to.map(x=>x.email)).size !== covEdit.to.length;
+  const counts = from ? coverCounts(from, covEdit.to) : null;
+  const ok = from && covEdit.to.length && covEdit.to.every(x => x.email) && total===100 && !dup;
+  $('covForm').innerHTML = `<div class="covform">
+    <label class="field">Who is off?<select id="covFrom"><option value="">Choose a member of staff</option>
+      <optgroup label="Learning and Pastoral Leaders">${people.filter(p => p.role==='ll'||p.role==='pl').filter(p => !taken.has(p.email)).map(opt).join('')}</optgroup>
+      <optgroup label="Tutors">${people.filter(p => p.role==='tutor').filter(p => !taken.has(p.email)).sort((a,b)=>(a.forms||[''])[0].localeCompare((b.forms||[''])[0])).map(opt).join('')}</optgroup></select></label>
+    ${from ? `<p class="cellmeta" style="margin:6px 0">${counts.total} students to share out. Who covers them?</p>
+      ${covEdit.to.map((x,k) => `<div class="row covline"><select data-covto="${k}"><option value="">Choose…</option>${eligible.map(p => `<option value="${esc(p.email)}"${x.email===p.email?' selected':''}>${esc(personLabel(p))}</option>`).join('')}</select>
+        <input type="number" min="1" max="100" step="1" data-covpct="${k}" value="${x.pct}"> % <span class="cellmeta">${x.email ? counts.each[k]+' students' : ''}</span>
+        ${covEdit.to.length>1 ? `<button class="btn small danger" data-covdel="${k}">✕</button>` : ''}</div>`).join('')}
+      <div class="row" style="margin-top:6px"><button class="btn small" id="covAdd">Add another person</button><button class="btn small" id="covEven">Split evenly</button>
+        <span class="${total===100?'ok-t':'bad-t'}">Total ${total}%${total===100?' ✓':' (must be 100%)'}</span>${dup?' <span class="bad-t">Someone is listed twice.</span>':''}</div>` : ''}
+    <div class="row" style="margin-top:10px"><button class="btn primary" id="covSave" ${ok?'':'disabled'}>${covEdit.index!=null?'Save changes':'Start cover'}</button><button class="btn" id="covCancel">Cancel</button></div></div>`;
+}
+$('coverPanel').addEventListener('click', e => {
+  const id = e.target.id;
+  if(id==='covNew'){ covEdit = {from:'', to:[{email:'', pct:100}], index:null}; renderCover(); return; }
+  if(id==='covCancel'){ covEdit = null; renderCover(); return; }
+  if(id==='covAdd'){ covEdit.to.push({email:'', pct:0}); renderCover(); return; }
+  if(id==='covEven'){ const n = covEdit.to.length, base = Math.floor(100/n); covEdit.to.forEach((x,k) => x.pct = base + (k < 100 - base*n ? 1 : 0)); renderCover(); return; }
+  if(id==='covSave'){
+    const people = peopleList(), from = people.find(p => p.email===covEdit.from);
+    const d = {id: covEdit.id || ('c'+Date.now()), from:{email:from.email, name:from.name, role:from.role, year:from.year||'', forms:from.forms||[]},
+      to: covEdit.to.map(x => ({email:x.email, name:(people.find(p => p.email===x.email)||{}).name || x.email, pct:+x.pct})), since: covEdit.since || TODAY};
+    const ds = (state.settings.delegations || []).slice(); if(covEdit.index!=null) ds[covEdit.index] = d; else ds.push(d);
+    state.settings.delegations = ds; covEdit = null; saveSettings(); toast('Cover saved for '+d.from.name); renderAll(); return; }
+  const del = e.target.closest('[data-covdel]'); if(del){ covEdit.to.splice(+del.dataset.covdel, 1); renderCover(); return; }
+  const ed = e.target.closest('[data-covedit]'); if(ed){ const i = +ed.dataset.covedit, d = state.settings.delegations[i]; covEdit = {id:d.id, from:d.from.email, to:d.to.map(x=>({email:x.email, pct:x.pct})), index:i, since:d.since}; renderCover(); return; }
+  const end = e.target.closest('[data-covend]'); if(end){ const i = +end.dataset.covend;
+    if(covArmed!==i){ covArmed = i; renderCover(); setTimeout(() => { if(covArmed===i){ covArmed = null; renderCover(); } }, 3000); return; }
+    const d = state.settings.delegations[i]; state.settings.delegations = state.settings.delegations.filter((x,k) => k!==i); covArmed = null; saveSettings(); toast('Cover ended for '+d.from.name); renderAll(); }
+});
+$('coverPanel').addEventListener('change', e => {
+  if(e.target.id==='covFrom'){ covEdit.from = e.target.value; covEdit.to = [{email:'', pct:100}]; renderCover(); return; }
+  const to = e.target.dataset.covto; if(to!=null){ covEdit.to[+to].email = e.target.value; renderCover(); return; }
+  const pc = e.target.dataset.covpct; if(pc!=null){ covEdit.to[+pc].pct = Math.max(0, Math.min(100, Math.round(+e.target.value||0))); renderCover(); }
+});
 
 /* ---------- old data warning ---------- */
 function renderStale(){
@@ -1836,18 +2005,10 @@ function renderDetail(){
   $('dBody').innerHTML = `
     <div class="hero"><div class="hp">${fmtPct(f.p)}</div><div class="cellmeta">${String(s.A).replace('.5','½')} of ${String(s.P).replace('.5','½')} days</div></div>
     <div class="goalbox">${f.activeGoal&&!f.rewardDue?'<small>Goal</small>':f.rewardDue?'':'<small>Next milestone</small>'}${goalTxt}</div>
-    <div class="ladder">${ladder}</div>
     ${f.offTrack ? `<div class="msg bad" style="margin:0 0 8px">Declining: down ${f.drop.toFixed(1)} points since they were last seen on ${nice(f.last.date)} (was ${fmtPct(f.atGoal)}).</div>` : ''}
-    ${user.role!=='tutor' && (f.groups.length || vpLike(user.role)) ? `<div class="grpbox"><div class="grptitle">Groups</div><div class="grpchips">${groupList().map(g => {
-        const inG = f.groups.some(x => x.id===g.id), mm = isManualGroup(g) ? (state.members[g.id]||{})[s.id] : null;
-        if(isManualGroup(g)) return vpLike(user.role) ? `<button class="gchip${inG?' on':''}" data-grp="${esc(g.id)}">${inG?'★ ':'☆ '}${esc(g.name)}${mm&&mm.start!=null?' <small>since '+nice(mm.date)+', '+fmtPct(mm.start)+' → '+fmtPct(f.p)+'</small>':''}</button>` : (inG ? `<span class="gchip on">★ ${esc(g.name)}</span>` : '');
-        return inG ? `<span class="gchip auto">${esc(g.name)} <small>automatic</small></span>` : '';
-      }).join('')}</div></div>` : ''}
-    ${uBoxHTML(s)}
-    <div class="minirow"><span>90%: <b>${n90}</b></span><span>Best by July: <b>${fmtPct(f.best)}</b></span>${f.streak.days>=1?`<span>In every day: <b>${String(f.streak.days).replace('.5','½')}${f.streak.capped?'+':''} days</b></span>`:''}</div>
-
+    ${hasTimetable() ? `<p class="whereline">${PIN}<span>${w ? (w.now ? 'Now: '+placeHTML(w) : 'Next, '+DAYNAME[w.day].slice(0,3)+' '+w.per+': '+placeHTML(w)) + (locLabel(w.room)?' <span class="cellmeta">('+locLabel(w.room)+')</span>':'') : 'No timetable'}</span></p>` : ''}
     <div class="actions">
-      <button class="act ${todayLogs('checkin').length?'done':''}" data-act="checkin"><span class="dot">✓</span><span>Check-in completed${f.ciMax?' <small>('+f.ciDone+' of '+f.ciMax+')</small>':''}<span class="sub">${subOf(ci,'Not yet')}${f.finished&&!f.offTrack?' · all check-ins done':''}</span></span></button>
+      <button class="act ${todayLogs('checkin').length?'done':''}" data-act="checkin"><span class="dot">✓</span><span>Check-in completed${f.ciMax?' '+dots(f.ciDone, f.ciMax):''}<span class="sub">${subOf(ci,'Not yet')}${f.finished&&!f.offTrack?' · all check-ins done':''}</span></span></button>
       ${f.list ? `<button class="act notin ${f.notinToday?'done':''}" data-act="notin"><span class="dot">✕</span><span>Not in today<span class="sub">${f.notinToday?'Marked today by '+esc(f.notinToday.staff)+': back on the list tomorrow':'Clears the card until tomorrow'}</span></span></button>` : ''}
       ${pickGoal!=null && !f.rewardDue ? `<div class="agreebox"><div class="rbtitle">Agreed reward for ${pickGoal}%${groupRewards(s).length?' <span class="cellmeta">(set for '+esc([...new Set(groupRewards(s).map(r=>r.group))].join(', '))+')</span>':''}: <span class="cellmeta">tap one, then Goal set below</span></div>
         <div class="rchips agree">${rewardChoices(s, pickGoal).map(r => `<button data-agree="${esc(r.name)}" class="${pickReward===r.name?'on':''}">${pickReward===r.name?'✓ ':''}${esc(r.name)}</button>`).join('')}</div></div>` : ''}
@@ -1858,9 +2019,16 @@ function renderDetail(){
           return list.map(n => `<button data-rw="${esc(n)}" class="${n===agreed?'agreed':''}">${n===agreed?'★ '+esc(n)+' <small>agreed</small>':esc(n)}</button>`).join(''); })()}</div></div>`
         : `<button class="act reward ${rw&&rw.date===TODAY?'done':''}" disabled><span class="dot">★</span><span>Reward given<span class="sub">${rw ? 'Last: '+rw.m+'%'+(rw.reward?' · '+esc(rw.reward):'')+', '+nice(rw.date) : 'Not due yet'}</span></span></button>`}
     </div>
-
-    ${hasTimetable() ? `<p class="whereline">${PIN}<span>${w ? (w.now ? 'Now: '+placeHTML(w) : 'Next, '+DAYNAME[w.day].slice(0,3)+' '+w.per+': '+placeHTML(w)) + (locLabel(w.room)?' <span class="cellmeta">('+locLabel(w.room)+')</span>':'') : 'No timetable'}</span></p>` : ''}
-
+    ${uBoxHTML(s)}
+    ${user.role!=='tutor' && (f.groups.length || vpLike(user.role)) ? `<div class="grpbox"><div class="grptitle">Groups</div><div class="grpchips">${groupList().map(g => {
+        const inG = f.groups.some(x => x.id===g.id), mm = isManualGroup(g) ? (state.members[g.id]||{})[s.id] : null;
+        if(isManualGroup(g)) return vpLike(user.role) ? `<button class="gchip${inG?' on':''}" data-grp="${esc(g.id)}">${inG?'★ ':'☆ '}${esc(g.name)}${mm&&mm.start!=null?' <small>since '+nice(mm.date)+', '+fmtPct(mm.start)+' → '+fmtPct(f.p)+'</small>':''}</button>` : (inG ? `<span class="gchip on">★ ${esc(g.name)}</span>` : '');
+        return inG ? `<span class="gchip auto">${esc(g.name)} <small>automatic</small></span>` : '';
+      }).join('')}</div></div>` : ''}
+    <details class="plain"><summary>Milestones and days</summary>
+    <div class="ladder">${ladder}</div>
+    <div class="minirow"><span>90%: <b>${n90}</b></span><span>Best by July: <b>${fmtPct(f.best)}</b></span>${f.streak.days>=1?`<span>In every day: <b>${String(f.streak.days).replace('.5','½')}${f.streak.capped?'+':''} days</b></span>`:''}</div>
+    </details>
     <details class="plain"><summary>Add a note</summary><textarea id="note" rows="2" placeholder="Saved with your next tap"></textarea></details>
     ${hasTimetable() ? `<details class="plain"><summary>${DAYNAME[dayIdx]}'s timetable</summary><table class="daytt">${tt}</table></details>` : ''}
     <details class="plain"><summary>History (${f.logs.length})</summary>
@@ -2428,7 +2596,7 @@ function renderAll(){
   if($('s-monitor').classList.contains('on')) renderMonitor();
   if($('s-tutors').classList.contains('on')) renderTutorsTab();
   if($('s-ucodes').classList.contains('on')) renderUTab();
-  if($('s-settings').classList.contains('on')) renderSettings();
+  if($('s-settings').classList.contains('on')){ renderSettings(); renderCover(); setupSettingsPanels(); }
 }
 function showSection(id){
   document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x.dataset.s===id));
@@ -2602,14 +2770,15 @@ function renderTutor(){
   const spoken = win.filter(x => x.f.tutorChat).length;
   $('tTitle').textContent = user.tutor+' · '+user.name;
   const td = +state.settings.tutorDays;
-  $('tIntro').textContent = `Close to their next attendance milestone. Have a quick word, then tick them off.`;
+  { const cov = coverMap(), names = [...new Set([...cov.values()].map(c => c.from.name))];
+    $('tIntro').innerHTML = `Close to their next attendance milestone. Have a quick word, then tick them off.` + (names.length ? `<br><b>You're also covering ${esc(names.join(' and '))}</b>: their students are marked <span class="covtag">Covering</span>.` : ''); }
   const away = win.filter(x => x.f.tutorAway).length;
   $('tStats').innerHTML = win.length ? `<b>${spoken} of ${win.length}</b> spoken to${away?` · ${away} not in this week`:''}` : '';
   $('tCards').innerHTML = win.length ? win.map(({s,f}) => {
     const first = s.name.split(', ').reverse()[0];
     const ch = f.tutorChat, today = ch && ch.date===TODAY, aw = f.tutorAway;
     return `<div class="tcard${ch?' done':aw?' away':''}">
-      <div><div class="nm">${esc(s.name)}</div><div class="cellmeta">${fmtPct(f.p)} now</div></div>
+      <div><div class="nm">${esc(s.name)}</div><div class="cellmeta">${fmtPct(f.p)} now${coverMap().has(String(s.id)) ? ' · '+esc(s.tutor) : ''}${covTag(s)}</div></div>
       <div class="tbtns">
         <button class="tick${ch?' on':''}" data-tid="${esc(s.id)}"><span class="dot">✓</span>${ch ? (today?'Spoke today':'Spoke '+nice(ch.date)) : 'Spoke to them'}</button>
         ${ch ? '' : `<button class="awaybtn${aw?' on':''}" data-aid="${esc(s.id)}">${aw ? '✓ Not in this week' : 'Not in this week'}</button>`}
@@ -2672,7 +2841,7 @@ $('login').onclick = e => {
 };
 $('tutorGo').onclick = () => { const g = $('tutorSel').value; if(!g) return;
   if(API){ $('tutorGo').disabled = true; call('setMyForm', g).then(() => { $('login').classList.remove('on'); bootFromServer(); }); return; }
-  signIn({role:'tutor', tutor:g, year:$('tutorYear').value, name:tutorName(g)}); };
+  signIn({role:'tutor', tutor:g, forms:[g], year:$('tutorYear').value, name:tutorName(g), email:mockTutorEmail(g)}); };
 function showFormPicker(forms){
   // Apps Script: a tutor's first visit. They pick their form once.
   $('login').classList.add('on');
