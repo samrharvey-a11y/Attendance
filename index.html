@@ -446,6 +446,8 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .covline input[type=number]{width:70px}
 .bad-t{color:var(--bad);font-weight:600}
 
+.seenmsg{margin:0 0 10px}
+
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
 #login.on{display:block}
@@ -1119,7 +1121,9 @@ function save(){ if(API) return; try{ localStorage.setItem(KEY, JSON.stringify(s
 
 /* ---------- data layer: the browser in the mock-up, the Google Sheet in Apps Script ---------- */
 function serverError(e){ toast('⚠ Not saved: ' + (e && e.message ? e.message : e)); }
-function call(fn, ...args){ return new Promise((res, rej) => API.withSuccessHandler(res).withFailureHandler(e => { serverError(e); rej(e); })[fn](...args)); }
+let pending = 0, writeSeq = 0, lastFetch = 0;
+function call(fn, ...args){ pending++; writeSeq++;
+  return new Promise((res, rej) => API.withSuccessHandler(r => { pending--; res(r); }).withFailureHandler(e => { pending--; serverError(e); rej(e); })[fn](...args)); }
 function addLog(entry){
   entry.id = entry.id || uid();
   state.log.push(entry); invalidate(); save();
@@ -1145,9 +1149,15 @@ function setTargets(ids, on, group){   // one request for any number of students
   return changes.length;
 }
 function saveStaff(){ save(); if(API) call('saveStaff', state.staff); }
-function bootFromServer(){
-  $('loading').classList.add('on');
+function bootFromServer(silent){
+  const seq = writeSeq, who = user && user.email;
+  if(!silent) $('loading').classList.add('on');
   API.withSuccessHandler(b => {
+    if(silent){
+      // skip this refresh if something was saved meanwhile, or the person is in the middle of something
+      if(b.error || seq!==writeSeq || pending || !refreshSafe() || (b.user && b.user.email)!==who) return;
+    }
+    lastFetch = Date.now();
     $('loading').classList.remove('on');
     if(b.error){ $('loading').classList.add('on'); $('loadingMsg').textContent = b.error; return; }
     // rebuild each day's rows from today's student details plus the compact history
@@ -1168,8 +1178,21 @@ function bootFromServer(){
     if(vpLike(user.role) && !bootedOnce){ curList = 'all'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l==='all')); }
     bootedOnce = true;
     renderAll();
-  }).withFailureHandler(e => { $('loadingMsg').textContent = 'Couldn\'t load: ' + (e.message||e); }).getBootstrap(currentView);
+  }).withFailureHandler(e => { if(!silent) $('loadingMsg').textContent = 'Couldn\'t load: ' + (e.message||e); }).getBootstrap(currentView);
 }
+// is it safe to redraw with fresh data? not while typing, editing settings or mid-way through a form
+function refreshSafe(){
+  const a = document.activeElement;
+  if(a && (a.tagName==='TEXTAREA' || (a.tagName==='INPUT' && a.type!=='checkbox' && a.type!=='radio') || a.tagName==='SELECT')) return false;
+  if(($('note')||{}).value) return false;
+  if($('s-settings').classList.contains('on')) return false;
+  if($('login').classList.contains('on') || $('loading').classList.contains('on')) return false;
+  if(typeof covEdit!=='undefined' && covEdit) return false;
+  return true;
+}
+function refreshNow(){ if(API && user && !pending && refreshSafe()) bootFromServer(true); }
+setInterval(() => { if(document.visibilityState==='visible' && Date.now()-lastFetch > 110000) refreshNow(); }, 20000);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState==='visible' && Date.now()-lastFetch > 30000) refreshNow(); });
 
 /* ---------- calendar maths ---------- */
 const closedOn = s => !!state.settings.closed[s];
@@ -1288,7 +1311,7 @@ function infoCalc(s){
   const tg = (state.members.da17||{})[s.id] || null;   // kept for older screens: DA-17 membership
   const tGoal = (groupById('da17')||{}).goal || +state.settings.tGoal || 90;
   const isNew = !ever && (inScope || inGroup);
-  const steps = ciSteps(), ciDone = logs.filter(l => l.type==='checkin').length, ciMax = steps.length;
+  const steps = ciSteps(), ciDone = new Set(logs.filter(l => l.type==='checkin').map(l => l.date)).size, ciMax = steps.length;   // two check-ins on one day count once
   const finished = ciDone >= ciMax;   // had all their check-ins: off the check-in list unless declining
   const gap = steps[Math.min(ciDone, ciMax-1)];   // school days before the next check-in is due
   let list = null;
@@ -1322,6 +1345,13 @@ function infoCalc(s){
 }
 
 const CONTACT_TYPES = ['checkin','goal','reward'];
+const SEEN_TXT = {checkin:'checked in with them', goal:'set a goal', reward:'gave a reward', notin:'marked them not in', ucheck:'did a U-code check-in', unotin:'marked them not in (U codes)'};
+const logTime = l => l.time || (l.t ? new Date(l.t).toTimeString().slice(0,5) : '');
+function seenTodayHTML(f){
+  const others = f.logs.filter(l => l.date===TODAY && SEEN_TXT[l.type] && l.staff && l.staff!==user.name);
+  if(!others.length) return '';
+  return `<div class="msg info seenmsg">Already seen today: ${others.map(l => `<b>${esc(l.staff)}</b> ${SEEN_TXT[l.type]}${logTime(l)?' at '+logTime(l):''}`).join('; ')}.</div>`;
+}
 const dots = (done, total, what) => total ? `<span class="dots" title="${esc(what||'Check-in')} ${Math.min(done+1,total)} of ${total}">${Array.from({length:total}, (_,i) => `<i class="${i<done?'on':i===done?'next':''}"></i>`).join('')}</span>` : '';
 const DONE_LABEL = {checkin:'✓ Checked in', goal:'✓ Goal set', reward:'✓ Reward given', notin:'Not in today'};
 /* ---------- U codes: the attendance manager's list ---------- */
@@ -1336,7 +1366,7 @@ function uInfo(s){
   const base = before ? before.rows[s.id].u : 0;
   const since = d => { const r = d.rows[s.id]; return r && r.u!=null ? Math.max(0, r.u - base) : null; };
   const now = Math.max(0, s.u - base);
-  const logs = logsFor(s.id).filter(l => l.type==='ucheck');
+  const logs = logsFor(s.id).filter(l => l.type==='ucheck').filter((l,i,a) => a.findIndex(x => x.date===l.date)===i);   // one per day
   const todays = logsFor(s.id).filter(l => l.date===TODAY && (l.type==='ucheck' || l.type==='unotin'));
   const doneToday = todays.find(l => l.type==='ucheck') || todays.find(l => l.type==='unotin') || null;
   const doneN = logs.length, step = doneN % N, rounds = Math.floor(doneN / N);
@@ -1443,7 +1473,7 @@ function renderLists(){
   ['new','reward','check'].forEach(k => { const b = document.querySelector('#seg button[data-l='+k+'] .count'); b.classList.toggle('zero', !counts[k]); b.title = counts[k] ? counts[k]+' still to do today' : 'All done'+(doneN[k]?': '+doneN[k]+' ticked off today':''); if(!counts[k] && doneN[k]) b.textContent = '✓'; });
   const onList = all.filter(x=>x.f.list).length;
   renderStale();
-  $('databar').innerHTML = esc(`${daysLeft()} school days left · data from ${nice(dataDate())}`) + (API && vpLike(user.role) && state.importError ? ` · <span style="color:var(--bad)">⚠ Synergy import failed: see Settings</span>` : '');
+  $('databar').innerHTML = esc(`${daysLeft()} school days left · data from ${nice(dataDate())}`) + (API && lastFetch ? ` · <span title="Colleagues' changes appear within a couple of minutes">updated ${new Date(lastFetch).toTimeString().slice(0,5)}</span>` : '') + (API && vpLike(user.role) && state.importError ? ` · <span style="color:var(--bad)">⚠ Synergy import failed: see Settings</span>` : '');
   $('listhint').innerHTML = esc(LIST_HINT[curList].replace('{n}', ciPlan())) + (jumpFilter==='declining' ? ' <button class="jumpchip" id="jumpClear">Declining only ✕</button>' : '');
   const nf = ['fYear','fTutor','fBand','fBlock','fGroup','fCheck'].filter(id=>$(id).value && $(id).style.display!=='none').length + ($('fDue').checked&&curList==='check'?1:0);
   $('fBtn').textContent = nf ? 'Filter ('+nf+')' : 'Filter';
@@ -2007,6 +2037,7 @@ function renderDetail(){
     <div class="goalbox">${f.activeGoal&&!f.rewardDue?'<small>Goal</small>':f.rewardDue?'':'<small>Next milestone</small>'}${goalTxt}</div>
     ${f.offTrack ? `<div class="msg bad" style="margin:0 0 8px">Declining: down ${f.drop.toFixed(1)} points since they were last seen on ${nice(f.last.date)} (was ${fmtPct(f.atGoal)}).</div>` : ''}
     ${hasTimetable() ? `<p class="whereline">${PIN}<span>${w ? (w.now ? 'Now: '+placeHTML(w) : 'Next, '+DAYNAME[w.day].slice(0,3)+' '+w.per+': '+placeHTML(w)) + (locLabel(w.room)?' <span class="cellmeta">('+locLabel(w.room)+')</span>':'') : 'No timetable'}</span></p>` : ''}
+    ${seenTodayHTML(f)}
     <div class="actions">
       <button class="act ${todayLogs('checkin').length?'done':''}" data-act="checkin"><span class="dot">✓</span><span>Check-in completed${f.ciMax?' '+dots(f.ciDone, f.ciMax):''}<span class="sub">${subOf(ci,'Not yet')}${f.finished&&!f.offTrack?' · all check-ins done':''}</span></span></button>
       ${f.list ? `<button class="act notin ${f.notinToday?'done':''}" data-act="notin"><span class="dot">✕</span><span>Not in today<span class="sub">${f.notinToday?'Marked today by '+esc(f.notinToday.staff)+': back on the list tomorrow':'Clears the card until tomorrow'}</span></span></button>` : ''}
@@ -2032,7 +2063,7 @@ function renderDetail(){
     <details class="plain"><summary>Add a note</summary><textarea id="note" rows="2" placeholder="Saved with your next tap"></textarea></details>
     ${hasTimetable() ? `<details class="plain"><summary>${DAYNAME[dayIdx]}'s timetable</summary><table class="daytt">${tt}</table></details>` : ''}
     <details class="plain"><summary>History (${f.logs.length})</summary>
-    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%'+(l.reward?' · agreed reward: '+esc(l.reward):''):l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':l.type==='notin'?'Not in today':l.type==='unotin'?'U codes: not in today':l.type==='ucheck'?'U-code check-in'+(l.m!=null?' ('+l.m+' U codes)':''):'<b>Reward given: '+l.m+'%'+(l.reward?' · '+esc(l.reward):'')+'</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
+    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}${logTime(l)?'<br><small>'+logTime(l)+'</small>':''}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%'+(l.reward?' · agreed reward: '+esc(l.reward):''):l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':l.type==='notin'?'Not in today':l.type==='unotin'?'U codes: not in today':l.type==='ucheck'?'U-code check-in'+(l.m!=null?' ('+l.m+' U codes)':''):'<b>Reward given: '+l.m+'%'+(l.reward?' · '+esc(l.reward):'')+'</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
       <li><span class="d">${state.firstListed[s.id]?nice(state.firstListed[s.id]):''}</span><span class="cellmeta">First on the list</span></li></ul></details>
   `;
 }
