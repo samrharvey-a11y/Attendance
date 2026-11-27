@@ -405,6 +405,16 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .pct.ucount small{font-size:13px;font-weight:600;color:var(--muted)}
 .rolebtn.am{border-color:var(--gold)}
 
+.agreebox{margin:2px 0 6px;padding:8px 10px;border:1px dashed var(--gold);border-radius:10px;background:#fffdf6}
+.agreebox .rbtitle{font-size:13px;margin-bottom:6px}
+.rchips.agree button{padding:6px 11px;font-size:13.5px}
+.rchips button.on{background:var(--gold);color:#3a2b00;border-color:var(--gold);font-weight:700}
+.rchips button.agreed{background:var(--gold);color:#3a2b00;font-weight:700}
+.rchips button.agreed small{font-weight:600;opacity:.8}
+.agreetag{font-size:12px;font-weight:700;color:#7a5a00;background:#fbf1d6;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.grprw{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:-2px}
+.grprw .gchip{font-size:12.5px;padding:3px 10px}
+
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
 #login.on{display:block}
@@ -1325,7 +1335,7 @@ function goalShort(f){
   if(f.target==null) return f.p>=95 ? '95% or above' : 'All milestones rewarded';
   if(f.rewardDue) return `<span class="ok-t">✓ Reached ${f.activeGoal.m}%</span>`;
   if(!f.reachable) return `${f.target}% <span class="cellmeta">not reachable this year</span>`;
-  return `<b>${f.target}%</b> in ${fmtDays(f.need)}`;
+  return `<b>${f.target}%</b> in ${fmtDays(f.need)}${f.activeGoal && f.activeGoal.reward ? ' <span class="agreetag">★ '+esc(f.activeGoal.reward)+'</span>' : ''}`;
 }
 const streakTxt = f => f.streak.days>=3 ? `<span class="streak">In every day: ${String(f.streak.days).replace('.5','½')}${f.streak.capped?'+':''} days</span>` : '';
 function statusShort(f){
@@ -1767,9 +1777,9 @@ async function readNameFile(file){
 const pastedRows = txt => txt.split(/\r?\n/).map(l => l.includes('\t') ? l.split('\t') : [l]);
 
 /* ---------- detail sheet ---------- */
-let pickGoal = null, showPick = false;
+let pickGoal = null, showPick = false, pickReward = null;
 function openStudent(id){ // (only the panel is drawn; the list stays as it is)
-  selId = id; pickGoal = null; showPick = false;
+  selId = id; pickGoal = null; showPick = false; pickReward = null;
   renderDetail();
   $('sheet').classList.add('on'); $('shade').classList.add('on'); $('sheet').setAttribute('aria-hidden','false');
   document.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', c.dataset.id===String(id)));
@@ -1777,6 +1787,12 @@ function openStudent(id){ // (only the panel is drawn; the list stays as it is)
 function closeStudent(){ selId=null; $('sheet').classList.remove('on'); $('shade').classList.remove('on'); $('sheet').setAttribute('aria-hidden','true'); document.querySelectorAll('.card.sel').forEach(c=>c.classList.remove('sel')); }
 
 function rewardsFor(m){ const r = (state.settings.rewards||[]).filter(x => (+x.from||0) <= m); return r.length ? r : [{name:'Reward given'}]; }
+function groupRewards(s){
+  const out = [], seen = new Set();
+  info(s).groups.forEach(g => (g.rewards||[]).forEach(n => { if(!seen.has(n)){ seen.add(n); out.push({name:n, group:g.name}); } }));
+  return out;
+}
+function rewardChoices(s, m){ const g = groupRewards(s); return g.length ? g : rewardsFor(m||0); }
 function renderDetail(){
   if(selId==null) return;
   const s = curUpload().rows[selId]; if(!s){ closeStudent(); return; }
@@ -1824,9 +1840,13 @@ function renderDetail(){
     <div class="actions">
       <button class="act ${todayLogs('checkin').length?'done':''}" data-act="checkin"><span class="dot">✓</span><span>Check-in completed${f.ciMax?' <small>('+f.ciDone+' of '+f.ciMax+')</small>':''}<span class="sub">${subOf(ci,'Not yet')}${f.finished&&!f.offTrack?' · all check-ins done':''}</span></span></button>
       ${f.list ? `<button class="act notin ${f.notinToday?'done':''}" data-act="notin"><span class="dot">✕</span><span>Not in today<span class="sub">${f.notinToday?'Marked today by '+esc(f.notinToday.staff)+': back on the list tomorrow':'Clears the card until tomorrow'}</span></span></button>` : ''}
-      <button class="act ${gl&&gl.date===TODAY?'done':''}" data-act="goal" ${pickGoal==null?'disabled':''}><span class="dot">✓</span><span>Goal set${pickGoal?' · '+pickGoal+'%':''}<span class="sub">${gl? 'Current goal '+gl.m+'%' : 'No goal yet'}</span></span></button>
+      ${pickGoal!=null && !f.rewardDue ? `<div class="agreebox"><div class="rbtitle">Agreed reward for ${pickGoal}%${groupRewards(s).length?' <span class="cellmeta">(set for '+esc([...new Set(groupRewards(s).map(r=>r.group))].join(', '))+')</span>':''}: <span class="cellmeta">tap one, then Goal set below</span></div>
+        <div class="rchips agree">${rewardChoices(s, pickGoal).map(r => `<button data-agree="${esc(r.name)}" class="${pickReward===r.name?'on':''}">${pickReward===r.name?'✓ ':''}${esc(r.name)}</button>`).join('')}</div></div>` : ''}
+      <button class="act ${gl&&gl.date===TODAY?'done':''}" data-act="goal" ${pickGoal==null?'disabled':''}><span class="dot">✓</span><span>Goal set${pickGoal?' · '+pickGoal+'%':''}<span class="sub">${gl? 'Current goal '+gl.m+'%'+(gl.reward?' · agreed reward: '+esc(gl.reward):'') : 'No goal yet'}</span></span></button>
       ${showPick ? `<div class="goalpick">${goalOptions}</div>` : (pickGoal!=null ? `<button class="linkbtn" id="pickToggle">Choose a different milestone</button>` : '')}
-      ${f.rewardDue ? `<div class="rewardbox"><div class="rbtitle">★ Reward due for ${f.activeGoal.m}%. Tap the reward you gave:</div><div class="rchips">${rewardsFor(f.activeGoal.m).map(r => `<button data-rw="${esc(r.name)}">${esc(r.name)}</button>`).join('')}</div></div>`
+
+      ${f.rewardDue ? `<div class="rewardbox"><div class="rbtitle">★ Reward due for ${f.activeGoal.m}%. Tap the reward you gave:</div><div class="rchips">${(() => { const agreed = f.activeGoal.reward, list = rewardChoices(s, f.activeGoal.m).map(r => r.name); if(agreed && !list.includes(agreed)) list.unshift(agreed); if(agreed){ list.splice(list.indexOf(agreed),1); list.unshift(agreed); }
+          return list.map(n => `<button data-rw="${esc(n)}" class="${n===agreed?'agreed':''}">${n===agreed?'★ '+esc(n)+' <small>agreed</small>':esc(n)}</button>`).join(''); })()}</div></div>`
         : `<button class="act reward ${rw&&rw.date===TODAY?'done':''}" disabled><span class="dot">★</span><span>Reward given<span class="sub">${rw ? 'Last: '+rw.m+'%'+(rw.reward?' · '+esc(rw.reward):'')+', '+nice(rw.date) : 'Not due yet'}</span></span></button>`}
     </div>
 
@@ -1835,7 +1855,7 @@ function renderDetail(){
     <details class="plain"><summary>Add a note</summary><textarea id="note" rows="2" placeholder="Saved with your next tap"></textarea></details>
     ${hasTimetable() ? `<details class="plain"><summary>${DAYNAME[dayIdx]}'s timetable</summary><table class="daytt">${tt}</table></details>` : ''}
     <details class="plain"><summary>History (${f.logs.length})</summary>
-    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%':l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':l.type==='notin'?'Not in today':l.type==='unotin'?'U codes: not in today':l.type==='ucheck'?'U-code check-in'+(l.m!=null?' ('+l.m+' U codes)':''):'<b>Reward given: '+l.m+'%'+(l.reward?' · '+esc(l.reward):'')+'</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
+    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%'+(l.reward?' · agreed reward: '+esc(l.reward):''):l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':l.type==='notin'?'Not in today':l.type==='unotin'?'U codes: not in today':l.type==='ucheck'?'U-code check-in'+(l.m!=null?' ('+l.m+' U codes)':''):'<b>Reward given: '+l.m+'%'+(l.reward?' · '+esc(l.reward):'')+'</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
       <li><span class="d">${state.firstListed[s.id]?nice(state.firstListed[s.id]):''}</span><span class="cellmeta">First on the list</span></li></ul></details>
   `;
 }
@@ -1846,13 +1866,13 @@ function record(type, rewardName){
   const note = ($('note')||{}).value || '';
   const entry = {sid:s.id, type, date:TODAY, staff:user.name, t:Date.now()};
   if(note.trim()) entry.note = note.trim();
-  if(type==='goal'){ if(pickGoal==null) return; entry.m = pickGoal; }
+  if(type==='goal'){ if(pickGoal==null) return; entry.m = pickGoal; if(pickReward) entry.reward = pickReward; }
   if(type==='reward'){ if(!f.rewardDue) return; entry.m = f.activeGoal.m; entry.reward = rewardName || ''; }
   lastAction = addLog(entry);
   if(type==='notin'){ if(f.notinToday) return; markNotIn(s.id); return; }
-  const label = type==='checkin'?'Check-in logged': type==='goal'?'Goal of '+entry.m+'% set':(entry.reward||'Reward')+' given for '+entry.m+'%';
+  const label = type==='checkin'?'Check-in logged': type==='goal'?'Goal of '+entry.m+'% set'+(entry.reward?' ('+entry.reward+')':''):(entry.reward||'Reward')+' given for '+entry.m+'%';
   toast(label+' for '+s.name.split(', ').reverse().join(' '));
-  pickGoal = null; showPick = false;
+  pickGoal = null; showPick = false; pickReward = null;
   renderAll();
 }
 function hideToast(){ const el=$('toast'); el.classList.remove('on'); el.style.transform=''; el.style.opacity=''; }
@@ -2425,6 +2445,7 @@ $('dBody').onclick = e => {
   if(e.target.id==='pickToggle'){ showPick = true; renderDetail(); return; }
   const g = e.target.closest('[data-g]'); if(g && !g.disabled){ pickGoal = +g.dataset.g; const n=$('note')?.value; renderDetail(); if(n) $('note').value=n; return; }
   const rw = e.target.closest('[data-rw]'); if(rw){ record('reward', rw.dataset.rw); return; }
+  const ag = e.target.closest('[data-agree]'); if(ag){ pickReward = pickReward===ag.dataset.agree ? null : ag.dataset.agree; const n=$('note')?.value; renderDetail(); if(n) $('note').value=n; return; }
   const gb = e.target.closest('[data-grp]'); if(gb){ const s = curUpload().rows[selId], g = groupById(gb.dataset.grp); const on = !(state.members[g.id]||{})[s.id]; setTargets([s.id], on, g.id); lastAction = {groupChange:true, ids:[s.id], on, group:g.id}; toast((on ? 'Added to ' : 'Removed from ')+g.name); renderAll(); return; }
   const a = e.target.closest('[data-act]'); if(a && !a.disabled) record(a.dataset.act);
 };
@@ -2446,6 +2467,8 @@ function renderGroupEditor(){
       <span class="cellmeta">${n} ${n===1?'student':'students'}</span>
       ${isManualGroup(g) ? `<button class="btn small" data-gimp="${esc(g.id)}">${impGroup===g.id?'Close list':'Add from a list'}</button>` :'<span></span>'}
       <button class="btn small danger" data-gdel="${esc(g.id)}">✕</button>
+      <div class="grprw"><span class="cellmeta">Rewards for this group:</span> ${(state.settings.rewards||[]).map(r => { const on = (g.rewards||[]).includes(r.name); return `<button class="gchip${on?' on':''}" data-grw="${esc(g.id)}" data-name="${esc(r.name)}">${on?'✓ ':''}${esc(r.name)}</button>`; }).join('')}
+        <span class="cellmeta">${(g.rewards||[]).length ? 'Only these are offered to students in this group.' : 'None ticked: the usual rewards for each milestone.'}</span></div>
       ${impGroup===g.id ? `<div class="grpimp"><p class="hint" style="margin:0 0 6px">Paste names (one per line, e.g. <b>Smith, Ava</b> or <b>Ava Smith</b>) or choose a spreadsheet. Columns called <b>Surname</b>, <b>Forename</b>, <b>ID</b>, <b>Year</b> or <b>Form</b> are used if there are headings.</p>
         <textarea id="impText" placeholder="Smith, Ava&#10;Jones, Leo"></textarea>
         <div class="row"><button class="btn small primary" id="impCheck">Check names</button><label class="btn small">Choose a file (.xlsx, .csv)<input type="file" id="impFile" accept=".xlsx,.xls,.csv,.txt" hidden></label></div>
@@ -2465,6 +2488,7 @@ $('grpEdit').onchange = async e => {
 };
 let gdelArmed = null;
 $('grpEdit').onclick = e => {
+  const gr = e.target.closest('[data-grw]'); if(gr){ const g = groupById(gr.dataset.grw), n = gr.dataset.name; g.rewards = (g.rewards||[]).includes(n) ? g.rewards.filter(x => x!==n) : (g.rewards||[]).concat(n); saveSettings(); renderGroupEditor(); return; }
   const gi = e.target.closest('[data-gimp]'); if(gi){ impGroup = impGroup===gi.dataset.gimp ? null : gi.dataset.gimp; impFound = null; renderGroupEditor(); return; }
   if(e.target.id==='impCheck'){ impFound = matchNames(pastedRows($('impText').value)); renderImpResult(); return; }
   if(e.target.id==='impAdd'){ const m = state.members[impGroup]||{}, ids = impFound.found.map(s=>String(s.id)).filter(id => !m[id]);
@@ -2480,8 +2504,9 @@ $('grpEdit').onclick = e => {
 };
 $('grpAdd').onclick = () => { state.settings.groups.push({id:'g'+uid(), name:'New group', type:'manual', goal:90}); saveSettings(); renderAll(); };
 
-$('rwTable').onchange = e => { const el = e.target.closest('[data-rwi]'); if(!el) return; const r = state.settings.rewards[+el.dataset.rwi]; r[el.dataset.k] = el.dataset.k==='from' ? +el.value : el.value.trim(); saveSettings(); };
-$('rwTable').onclick = e => { const b = e.target.closest('[data-rwdel]'); if(!b) return; state.settings.rewards.splice(+b.dataset.rwdel,1); saveSettings(); renderSettings(); };
+$('rwTable').onchange = e => { const el = e.target.closest('[data-rwi]'); if(!el) return; const r = state.settings.rewards[+el.dataset.rwi];
+  if(el.dataset.k==='name'){ const old = r.name, nw = el.value.trim(); (state.settings.groups||[]).forEach(g => { if(g.rewards) g.rewards = g.rewards.map(x => x===old ? nw : x); }); } r[el.dataset.k] = el.dataset.k==='from' ? +el.value : el.value.trim(); saveSettings(); };
+$('rwTable').onclick = e => { const b = e.target.closest('[data-rwdel]'); if(!b) return; const gone = (state.settings.rewards[+b.dataset.rwdel]||{}).name; (state.settings.groups||[]).forEach(g => { if(g.rewards) g.rewards = g.rewards.filter(x => x!==gone); }); state.settings.rewards.splice(+b.dataset.rwdel,1); saveSettings(); renderSettings(); };
 $('rwAdd').onclick = () => { (state.settings.rewards ||= []).push({name:'New reward', from:10}); saveSettings(); renderSettings(); };
 $('staffTable').onchange = e => { const el = e.target.closest('[data-sti]'); if(!el) return; const p = state.staff[+el.dataset.sti]; p[el.dataset.k] = el.value.trim(); if(vpLike(p.role)) p.year=''; saveStaff(); $('staffMsg').textContent = '✓ Saved'; renderSettings(); };
 $('staffTable').onclick = e => { const b = e.target.closest('[data-stdel]'); if(!b) return; state.staff.splice(+b.dataset.stdel,1); saveStaff(); renderSettings(); };
