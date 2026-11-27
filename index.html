@@ -374,7 +374,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .bulkbar .spacer{flex:1}
 .bulkbar.on{position:fixed;top:auto;left:50%;bottom:16px;transform:translateX(-50%);width:min(1100px,calc(100% - 24px));box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:30;margin:0}
 #vpWrap.bulkon{padding-bottom:70px}
-@media (max-width:700px){.bulkbar.on{bottom:calc(72px + env(safe-area-inset-bottom))}}
+@media (max-width:700px){.bulkbar.on{bottom:calc(72px + var(--sab, 0px))}}
 .card{touch-action:pan-y;position:relative}
 .card.swiping{transition:none;background:linear-gradient(90deg,var(--ok-soft),#fff 70%)}
 .card.swiping::after{content:'✓ Let go to log a check-in';position:absolute;left:-150px;top:50%;transform:translateY(-50%);width:140px;color:var(--ok);font-weight:700;font-size:12.5px;text-align:right;opacity:var(--sw,0)}
@@ -481,7 +481,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 /* phone */
 @media (max-width:700px){
   header{padding:8px 14px;gap:10px}
-  nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);margin:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;z-index:30}
+  nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);margin:0;padding:6px 6px calc(6px + var(--sab, 0px));justify-content:space-around;z-index:30;flex-wrap:nowrap;box-sizing:border-box}
   nav button{flex-direction:column;gap:2px;font-size:11.5px;padding:5px 10px;border-radius:10px;color:var(--muted)}
   nav button.on{background:var(--accent-soft)}
   .brand h1{display:none}
@@ -496,7 +496,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   nav.single{display:none}
   header{flex-wrap:nowrap}
   .userchip #meLabel{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(92px + var(--sab, 0px))}
 }
 </style>
 </head>
@@ -1824,6 +1824,17 @@ $('coverPanel').addEventListener('change', e => {
   const to = e.target.dataset.covto; if(to!=null){ covEdit.to[+to].email = e.target.value; renderCover(); return; }
   const pc = e.target.dataset.covpct; if(pc!=null){ covEdit.to[+pc].pct = Math.max(0, Math.min(100, Math.round(+e.target.value||0))); renderCover(); }
 });
+
+/* ---------- phones: keep the bottom menu one size ----------
+   Android reports a different gesture-bar gap as the address bar slides in and out while scrolling,
+   which made the menu grow and shrink. Use the largest gap seen instead. */
+{ const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;left:0;bottom:0;width:0;height:0;visibility:hidden;padding-bottom:env(safe-area-inset-bottom)';
+  document.body.appendChild(probe);
+  let sab = 0;
+  const measure = () => { const v = parseFloat(getComputedStyle(probe).paddingBottom) || 0; if(v > sab){ sab = v; document.documentElement.style.setProperty('--sab', sab+'px'); } };
+  measure(); window.addEventListener('resize', measure); window.addEventListener('orientationchange', () => { sab = 0; setTimeout(measure, 300); });
+}
 
 /* ---------- old data warning ---------- */
 function renderStale(){
