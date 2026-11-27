@@ -385,6 +385,26 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 .impres{font-size:13px;margin-top:8px}
 .impres ul{margin:4px 0 0;padding-left:18px;max-height:140px;overflow:auto}
 
+.cardside{display:flex;flex-direction:column;align-items:flex-end;gap:4px;align-self:center}
+.notinbtn{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:#fff;white-space:nowrap}
+.notinbtn:hover{border-color:var(--ink);color:var(--ink)}
+.card.done{opacity:.62;background:#f7f8fa}
+.donebadge{font-size:12px;font-weight:700;color:var(--ok);background:var(--ok-soft);border-radius:999px;padding:2px 10px;align-self:center;white-space:nowrap}
+.donebadge.notin{color:var(--muted);background:#eef0f3}
+.donesec{margin-top:14px;grid-column:1/-1}
+.donesec>summary{cursor:pointer;font-weight:700;color:var(--ok);padding:6px 0;list-style:none}
+.donesec>summary::-webkit-details-marker{display:none}
+.donesec>summary::before{content:'▸ '}
+.donesec[open]>summary::before{content:'▾ '}
+.empty.alldone{color:var(--ok);font-weight:700;background:var(--ok-soft);border-color:transparent}
+.count.zero{background:var(--ok-soft)!important;color:var(--ok)!important}
+.act.notin .dot{background:#eef0f3;color:var(--muted)}
+
+.ubox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 10px;background:#fff}
+.ubig{font-size:26px;font-weight:800;margin-right:8px}
+.pct.ucount small{font-size:13px;font-weight:600;color:var(--muted)}
+.rolebtn.am{border-color:var(--gold)}
+
 /* sign-in */
 #login{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto;display:none}
 #login.on{display:block}
@@ -443,6 +463,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   <nav id="nav">
     <button data-s="tutor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>My form</button>
     <button data-s="lists" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Students</button>
+    <button data-s="ucodes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>U codes</button>
     <button data-s="tutors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tutors</button>
     <button data-s="monitor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Monitoring</button>
     <button data-s="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
@@ -484,7 +505,8 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
         <option value="pct">Lowest attendance first</option>
         <option value="name">By surname</option>
       </select>
-      <label class="toggle" id="dueWrap"><input type="checkbox" id="fDue"> Due only</label>
+      <select id="fCheck" style="display:none"><option value="">Any check-in status</option><option value="not">Not checked in (due)</option><option value="done">Checked in (up to date)</option><option value="today">Done today</option><option value="finished">Had all their check-ins</option></select>
+      <label class="toggle" id="dueWrap"><input type="checkbox" id="fDue"> Show students not due yet</label>
     </div>
     <div class="cards" id="cards"></div>
     <div id="vpWrap" style="display:none">
@@ -508,6 +530,15 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   </section>
 
   <!-- MONITORING -->
+  <section id="s-ucodes">
+    <div class="stephead row"><h2 class="grow">U codes</h2></div>
+    <p class="hint" id="uHint"></p>
+    <div class="stats" id="uStats" style="margin-bottom:16px"></div>
+    <div class="filters" style="margin-bottom:10px"><input type="search" id="uQ" placeholder="Search" class="grow"><select id="uYear"><option value="">All years</option></select>
+      <select id="uShow"><option value="due">Due now</option><option value="soon">Coming up</option><option value="all">Everyone on the list</option></select></div>
+    <div class="cards" id="uCards"></div>
+  </section>
+
   <section id="s-tutors">
     <div class="stephead row"><h2 class="grow" id="ttTitle">Tutors</h2><button class="btn" id="ttCopy">Copy reminder for tutors</button></div>
     <p class="hint" id="ttHint"></p>
@@ -582,9 +613,21 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
       <label class="radio"><input type="radio" name="tmode" value="groups"> Only target students (anyone in a group)</label>
       <p class="hint" style="margin:4px 0 0">Students in a group always go on the list, whichever rule you pick.</p>
       <p class="hint" id="scopeMsg" style="margin:8px 0 14px"></p>
-      <label class="radio">Check-in due every <input type="number" id="ciDays" min="1" step="1"> school days</label>
+      <label class="radio">Each student gets <input type="number" id="ciMax" min="0" step="1"> check-ins, <input type="number" id="ciDays" min="1" step="1"> school days apart</label>
+      <p class="hint" style="margin:-2px 0 10px">After the last one they leave the check-in list for good, unless they start declining. Set check-ins to 0 for no limit.</p>
       <label class="radio">Tutors see students <input type="number" id="tutorDays" min="0.5" step="0.5"> days or fewer from a milestone</label>
       <label class="radio">Declining when attendance drops <input type="number" id="offDrop" min="0.1" step="0.1"> points or more since they were last seen</label>
+    </div>
+
+    <div class="panel">
+      <h2>U codes (Attendance Manager)</h2>
+      <p class="hint">Uses the <b>U</b> column in the attendance file, which is a running total. The app subtracts the total on the start date to count U codes since then.</p>
+      <label class="radio">Count U codes from <input type="date" id="uFrom"></label>
+      <label class="radio">Students with <input type="number" id="uMin" min="1" step="1"> or more U codes since then go on the Attendance Manager's list</label>
+      <h3 style="margin:14px 0 6px">Check-ins</h3>
+      <div id="uStepEdit"></div>
+      <button class="btn small" id="uStepAdd">Add a check-in</button>
+      <p class="hint" id="uMsg" style="margin-top:10px"></p>
     </div>
 
     <div class="panel">
@@ -667,7 +710,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 
     <div class="panel" id="uploadPanel">
       <h2>Upload data</h2>
-      <p class="hint">Upload the tracker export (<b>StudentId, LastName, FirstName, YearGroup, RegGroup, SessionsPresent, SessionsPossible, FSM</b>). Choose the Excel file, or copy the rows with the headings and paste them here. Sessions are halved to give days, and FSM is used as DA. Set "Correct up to" to the date the figures are from.</p>
+      <p class="hint">Upload the tracker export (<b>StudentId, LastName, FirstName, YearGroup, RegGroup, SessionsPresent, SessionsPossible, PP, U</b>). Choose the Excel file, or copy the rows with the headings and paste them here. Sessions are halved to give days, and FSM is used as DA. Set "Correct up to" to the date the figures are from.</p>
       <textarea id="paste" rows="3" placeholder="Paste rows here"></textarea>
       <div class="row" style="margin-top:10px">
         <label class="field" style="flex-direction:row;align-items:center;gap:8px">Correct up to<input type="date" id="upDate"></label>
@@ -695,7 +738,7 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
   <div class="loginhead"><div class="crest">R</div><h1>Attendance Milestones<small>Rainford High</small></h1></div>
   <p class="hint" style="margin:14px 0 20px">Mock-up sign-in: choose who you are. The real app will sign you in with your school Google account and pick the right view for you.</p>
   <div class="panel"><h2>Senior leadership</h2><p class="hint">Sees every year group, the monitoring summary and the settings.</p>
-    <div class="rolegrid"><button class="rolebtn vp" data-role="vp">Vice Principal<small>All years · settings</small></button></div></div>
+    <div class="rolegrid"><button class="rolebtn vp" data-role="vp">Vice Principal<small>All years · settings</small></button><button class="rolebtn am" data-role="am">Attendance Manager<small>All years · U codes</small></button></div></div>
   <div class="panel"><h2>Learning leaders</h2><p class="hint">Lists and monitoring for your year group.</p>
     <div class="rolegrid" id="llBtns"></div></div>
   <div class="panel"><h2>Pastoral leaders</h2><p class="hint">Lists and monitoring for your year group.</p>
@@ -723,8 +766,9 @@ details.plain summary{color:var(--ink);font-size:14px;padding:6px 0}
 const RAW = [[1,"Year 7","7B",36,32.0,"N"],[2,"Year 7","7B",54,48.5,"N"],[3,"Year 7","7B",54,49.5,"Y"],[4,"Year 7","7A",54,45.5,"Y"],[5,"Year 7","7A",54,44.0,"N"],[6,"Year 7","7C",54,53.0,"N"],[7,"Year 7","7B",30,25.5,"Y"],[8,"Year 7","7A",36,34.0,"N"],[9,"Year 7","7A",54,52.5,"N"],[10,"Year 7","7A",54,32.5,"Y"],[11,"Year 7","7A",54,49.0,"Y"],[12,"Year 7","7B",54,51.0,"N"],[13,"Year 7","7B",54,53.5,"N"],[14,"Year 7","REFLECT",30,26.5,"N"],[15,"Year 7","7C",54,46.5,"N"],[16,"Year 7","7C",54,52.5,"Y"],[17,"Year 7","7C",54,53.0,"N"],[18,"Year 7","7A",54,47.0,"Y"],[19,"Year 7","7C",54,52.0,"N"],[20,"Year 7","7A",54,53.0,"N"],[21,"Year 7","7A",54,47.5,"N"],[22,"Year 7","7C",54,52.0,"N"],[23,"Year 7","7B",54,52.5,"N"],[24,"Year 7","REFLECT",30,26.5,"Y"],[25,"Year 7","7A",54,44.0,"N"],[26,"Year 7","7B",54,53.5,"N"],[27,"Year 7","7B",54,51.0,"N"],[28,"Year 7","7B",54,46.5,"N"],[29,"Year 7","7B",54,43.0,"Y"],[30,"Year 7","7B",54,52.0,"N"],[31,"Year 7","7B",54,52.0,"N"],[32,"Year 7","7B",54,39.5,"Y"],[33,"Year 7","7A",54,49.0,"N"],[34,"Year 7","7A",54,50.0,"N"],[35,"Year 7","7B",54,44.5,"Y"],[36,"Year 7","7B",54,46.5,"N"],[37,"Year 7","7B",54,29.0,"N"],[38,"Year 7","7C",54,50.0,"N"],[39,"Year 7","REFLECT",54,54.0,"N"],[40,"Year 7","7C",54,52.0,"N"],[41,"Year 7","7A",54,42.0,"Y"],[42,"Year 7","7B",54,50.5,"N"],[43,"Year 7","7C",54,51.0,"N"],[44,"Year 7","7C",54,51.0,"N"],[45,"Year 7","7A",54,50.5,"Y"],[46,"Year 7","7C",54,49.5,"N"],[47,"Year 7","7B",54,52.5,"N"],[48,"Year 7","7B",54,49.0,"Y"],[49,"Year 7","7C",54,53.5,"Y"],[50,"Year 7","7A",54,50.0,"N"],[51,"Year 8","8C",36,35.0,"N"],[52,"Year 8","8B",54,42.0,"N"],[53,"Year 8","8A",54,52.5,"N"],[54,"Year 8","8B",54,53.0,"N"],[55,"Year 8","8A",54,51.5,"N"],[56,"Year 8","8D",54,50.0,"Y"],[57,"Year 8","8B",54,39.5,"Y"],[58,"Year 8","8B",54,47.0,"N"],[59,"Year 8","8D",36,35.0,"Y"],[60,"Year 8","8C",54,48.0,"N"],[61,"Year 8","8B",54,39.0,"Y"],[62,"Year 8","8A",54,52.0,"N"],[63,"Year 8","8B",54,41.5,"N"],[64,"Year 8","8D",54,53.5,"N"],[65,"Year 8","8D",24,20.5,"N"],[66,"Year 8","8C",54,50.5,"Y"],[67,"Year 8","8A",54,51.0,"Y"],[68,"Year 8","8C",54,47.0,"Y"],[69,"Year 8","8D",54,46.0,"N"],[70,"Year 8","8A",54,50.0,"N"],[71,"Year 8","8C",54,46.5,"N"],[72,"Year 8","8A",54,50.0,"Y"],[73,"Year 8","8A",54,50.0,"N"],[74,"Year 8","8A",54,51.5,"N"],[75,"Year 8","8C",54,53.5,"N"],[76,"Year 8","8A",54,45.0,"Y"],[77,"Year 8","8A",54,50.5,"N"],[78,"Year 8","8A",54,45.5,"Y"],[79,"Year 8","8D",54,52.5,"Y"],[80,"Year 8","8C",54,49.0,"Y"],[81,"Year 8","8C",54,47.0,"N"],[82,"Year 8","8C",54,47.0,"N"],[83,"Year 8","8D",54,48.5,"Y"],[84,"Year 8","8B",54,50.5,"N"],[85,"Year 8","8D",42.5,42.0,"N"],[86,"Year 8","8C",54,48.0,"N"],[87,"Year 8","8C",54,42.0,"Y"],[88,"Year 8","8B",54,48.5,"Y"],[89,"Year 8","8D",30,24.5,"Y"],[90,"Year 8","8C",54,43.0,"Y"],[91,"Year 8","8C",54,34.0,"Y"],[92,"Year 8","8C",54,54.0,"Y"],[93,"Year 8","8C",54,42.5,"Y"],[94,"Year 8","8A",54,40.5,"Y"],[95,"Year 8","8A",54,50.0,"N"],[96,"Year 8","8B",54,29.5,"N"],[97,"Year 8","8D",54,54.0,"N"],[98,"Year 8","8C",54,49.5,"N"],[99,"Year 8","8D",54,37.0,"Y"],[100,"Year 8","8D",54,52.5,"N"],[101,"Year 9","9D",54,52.0,"N"],[102,"Year 9","9B",54,46.5,"N"],[103,"Year 9","9A",54,46.5,"N"],[104,"Year 9","9A",54,41.0,"N"],[105,"Year 9","9C",46.5,40.0,"N"],[106,"Year 9","9A",54,46.0,"N"],[107,"Year 9","9C",54,25.5,"Y"],[108,"Year 9","9B",54,53.0,"N"],[109,"Year 9","9C",54,43.0,"Y"],[110,"Year 9","9C",54,52.0,"Y"],[111,"Year 9","9A",54,49.0,"N"],[112,"Year 9","9C",24,24.0,"N"],[113,"Year 9","9D",54,44.0,"Y"],[114,"Year 9","9C",54,53.5,"Y"],[115,"Year 9","9A",54,40.5,"Y"],[116,"Year 9","9A",54,53.5,"N"],[117,"Year 9","9C",54,52.0,"N"],[118,"Year 9","9C",54,47.5,"Y"],[119,"Year 9","9A",54,34.5,"N"],[120,"Year 9","9C",36,32.5,"N"],[121,"Year 9","9B",54,47.5,"N"],[122,"Year 9","9B",54,52.0,"N"],[123,"Year 9","9C",54,52.5,"N"],[124,"Year 9","9A",54,54.0,"Y"],[125,"Year 9","9D",24,23.0,"N"],[126,"Year 9","9D",54,52.0,"N"],[127,"Year 9","9C",54,52.5,"Y"],[128,"Year 9","9C",54,46.5,"N"],[129,"Year 9","9D",54,45.5,"N"],[130,"Year 9","9A",54,52.5,"N"],[131,"Year 9","9A",54,53.0,"N"],[132,"Year 9","9D",54,32.0,"N"],[133,"Year 9","9A",54,31.0,"N"],[134,"Year 9","9A",54,31.0,"N"],[135,"Year 9","9A",54,51.0,"Y"],[136,"Year 9","9A",54,53.0,"N"],[137,"Year 9","9B",54,53.5,"N"],[138,"Year 9","9C",54,50.0,"Y"],[139,"Year 9","9D",54,43.5,"N"],[140,"Year 9","9C",54,36.5,"Y"],[141,"Year 9","9A",54,52.0,"Y"],[142,"Year 9","9D",54,51.5,"Y"],[143,"Year 9","9A",54,51.0,"N"],[144,"Year 9","9B",54,40.5,"Y"],[145,"Year 9","9D",54,53.0,"N"],[146,"Year 9","9D",42.5,32.0,"Y"],[147,"Year 9","9D",54,50.5,"N"],[148,"Year 9","9C",24,13.5,"Y"],[149,"Year 9","9C",54,39.0,"Y"],[150,"Year 9","9A",54,31.5,"N"],[151,"Year 10","10C",54,54.0,"Y"],[152,"Year 10","10B",54,51.5,"Y"],[153,"Year 10","10C",54,48.5,"N"],[154,"Year 10","10C",54,32.0,"N"],[155,"Year 10","10B",54,54.0,"N"],[156,"Year 10","10C",54,49.0,"Y"],[157,"Year 10","10D",54,44.0,"Y"],[158,"Year 10","10B",54,42.5,"N"],[159,"Year 10","10A",36,33.0,"N"],[160,"Year 10","10B",54,50.0,"N"],[161,"Year 10","10A",54,33.0,"N"],[162,"Year 10","10C",54,52.0,"N"],[163,"Year 10","10B",54,51.0,"N"],[164,"Year 10","10B",54,47.5,"N"],[165,"Year 10","10A",54,43.5,"N"],[166,"Year 10","10A",54,53.0,"N"],[167,"Year 10","10B",54,52.0,"Y"],[168,"Year 10","10B",54,52.0,"N"],[169,"Year 10","10B",54,52.5,"N"],[170,"Year 10","10C",54,52.5,"N"],[171,"Year 10","10A",54,53.0,"Y"],[172,"Year 10","10B",54,51.0,"N"],[173,"Year 10","10A",54,33.0,"N"],[174,"Year 10","10C",54,52.5,"Y"],[175,"Year 10","10C",54,30.0,"Y"],[176,"Year 10","10A",54,52.0,"N"],[177,"Year 10","10A",54,50.5,"N"],[178,"Year 10","10D",54,51.0,"Y"],[179,"Year 10","10B",54,28.5,"Y"],[180,"Year 10","10C",54,47.0,"Y"],[181,"Year 10","10B",54,54.0,"N"],[182,"Year 10","10B",54,33.5,"N"],[183,"Year 10","10B",54,49.0,"N"],[184,"Year 10","10C",54,42.0,"Y"],[185,"Year 10","10A",54,45.0,"Y"],[186,"Year 10","10D",54,53.0,"N"],[187,"Year 10","10D",54,49.5,"N"],[188,"Year 10","10A",54,44.0,"N"],[189,"Year 10","10D",54,51.0,"N"],[190,"Year 10","10A",54,47.5,"N"],[191,"Year 10","10D",54,48.5,"N"],[192,"Year 10","10D",54,54.0,"N"],[193,"Year 10","10C",54,49.0,"Y"],[194,"Year 10","10D",54,54.0,"N"],[195,"Year 10","10B",54,50.5,"Y"],[196,"Year 10","10D",54,50.5,"N"],[197,"Year 10","10B",54,53.0,"Y"],[198,"Year 10","10C",30,26.5,"Y"],[199,"Year 10","10A",54,42.5,"Y"],[200,"Year 10","10A",54,47.0,"N"],[201,"Year 11","11E",54,36.5,"N"],[202,"Year 11","11A",54,53.5,"Y"],[203,"Year 11","11A",54,51.0,"N"],[204,"Year 11","11C",54,48.0,"N"],[205,"Year 11","11A",54,53.5,"N"],[206,"Year 11","11B",54,52.0,"N"],[207,"Year 11","11E",54,48.0,"N"],[208,"Year 11","11A",54,48.0,"N"],[209,"Year 11","11B",54,22.5,"N"],[210,"Year 11","11D",54,52.0,"N"],[211,"Year 11","11E",54,53.0,"N"],[212,"Year 11","11F",24,22.0,"Y"],[213,"Year 11","11E",54,45.0,"Y"],[214,"Year 11","11B",54,50.5,"N"],[215,"Year 11","11D",36,32.0,"N"],[216,"Year 11","11B",54,52.0,"Y"],[217,"Year 11","11A",54,52.0,"N"],[218,"Year 11","11E",54,49.0,"N"],[219,"Year 11","11A",54,51.0,"N"],[220,"Year 11","11F",54,52.5,"Y"],[221,"Year 11","11C",54,39.5,"N"],[222,"Year 11","11E",54,48.0,"N"],[223,"Year 11","11C",54,53.0,"N"],[224,"Year 11","11D",24,21.5,"N"],[225,"Year 11","11C",54,46.5,"N"],[226,"Year 11","11B",54,50.5,"N"],[227,"Year 11","11B",54,52.0,"N"],[228,"Year 11","11F",54,53.0,"Y"],[229,"Year 11","11B",54,42.0,"N"],[230,"Year 11","11B",54,53.0,"Y"],[231,"Year 11","11C",54,36.0,"Y"],[232,"Year 11","11E",54,48.5,"N"],[233,"Year 11","11D",54,49.5,"N"],[234,"Year 11","11F",54,49.0,"N"],[235,"Year 11","11C",54,48.5,"N"],[236,"Year 11","11C",54,29.0,"Y"],[237,"Year 11","11A",54,54.0,"Y"],[238,"Year 11","11A",54,51.0,"Y"],[239,"Year 11","11A",54,51.5,"N"],[240,"Year 11","11B",54,47.5,"N"],[241,"Year 11","11B",54,54.0,"N"],[242,"Year 11","11F",54,54.0,"N"],[243,"Year 11","REFLECT",30,28.5,"Y"],[244,"Year 11","11C",36,35.5,"N"],[245,"Year 11","11B",54,53.5,"N"],[246,"Year 11","11F",54,50.5,"N"],[247,"Year 11","11D",54,53.5,"N"],[248,"Year 11","11C",54,47.5,"N"],[249,"Year 11","11B",54,46.0,"N"],[250,"Year 11","11A",54,46.5,"N"],[251,"Year 12","12T1",54,49.0,"Y"],[252,"Year 12","12T2",54,53.0,"N"],[253,"Year 12","12T1",54,47.5,"Y"],[254,"Year 12","12T1",54,53.5,"N"],[255,"Year 12","12T2",54,51.5,"Y"],[256,"Year 12","12T1",54,47.5,"N"],[257,"Year 12","12T1",54,47.0,"N"],[258,"Year 12","12T1",54,49.5,"Y"],[259,"Year 12","12T2",54,49.5,"N"],[260,"Year 12","12T1",54,48.0,"N"],[261,"Year 12","12T2",54,39.5,"N"],[262,"Year 12","12T1",54,48.0,"Y"],[263,"Year 12","12T1",54,53.5,"Y"],[264,"Year 12","12T2",54,43.5,"N"],[265,"Year 12","12T1",54,53.5,"N"],[266,"Year 12","12T1",54,37.5,"N"],[267,"Year 12","12T2",54,41.0,"Y"],[268,"Year 12","12T2",54,51.5,"N"],[269,"Year 12","12T2",54,45.0,"N"],[270,"Year 12","12T1",54,49.5,"Y"],[271,"Year 12","12T2",54,53.0,"N"],[272,"Year 12","12T2",54,39.5,"N"],[273,"Year 12","12T2",54,46.5,"N"],[274,"Year 12","12T2",46.5,46.0,"N"],[275,"Year 12","12T2",54,39.0,"Y"],[276,"Year 12","12T2",54,49.5,"N"],[277,"Year 12","12T2",24,18.0,"N"],[278,"Year 12","12T1",54,50.5,"N"],[279,"Year 12","12T2",54,50.0,"Y"],[280,"Year 12","12T1",36,33.0,"N"],[281,"Year 12","12T2",54,42.5,"Y"],[282,"Year 12","12T2",54,39.0,"Y"],[283,"Year 12","12T1",54,49.0,"Y"],[284,"Year 12","12T2",54,45.5,"Y"],[285,"Year 12","12T2",42.5,41.5,"N"],[286,"Year 12","12T2",54,36.5,"Y"],[287,"Year 12","12T1",54,47.0,"N"],[288,"Year 12","12T1",54,52.0,"N"],[289,"Year 12","12T1",54,51.5,"N"],[290,"Year 12","12T1",54,49.5,"Y"],[291,"Year 12","12T1",30,27.0,"Y"],[292,"Year 12","12T1",54,41.5,"N"],[293,"Year 12","12T2",54,46.0,"N"],[294,"Year 12","12T1",54,53.5,"N"],[295,"Year 12","12T1",54,42.0,"Y"],[296,"Year 12","12T1",54,44.0,"N"],[297,"Year 12","12T2",54,45.5,"Y"],[298,"Year 12","12T2",54,44.5,"Y"],[299,"Year 12","12T2",54,51.5,"N"],[300,"Year 12","12T2",54,41.5,"Y"],[301,"Year 13","13T2",54,43.0,"Y"],[302,"Year 13","13T1",54,51.5,"N"],[303,"Year 13","13T1",54,53.5,"N"],[304,"Year 13","13T1",54,51.5,"N"],[305,"Year 13","13T2",54,39.0,"N"],[306,"Year 13","13T2",54,46.5,"N"],[307,"Year 13","13T2",54,51.0,"N"],[308,"Year 13","13T2",54,43.5,"N"],[309,"Year 13","13T1",54,52.5,"N"],[310,"Year 13","13T1",24,20.5,"N"],[311,"Year 13","13T1",54,52.0,"N"],[312,"Year 13","13T2",54,51.0,"Y"],[313,"Year 13","13T1",54,51.5,"Y"],[314,"Year 13","13T1",54,50.0,"N"],[315,"Year 13","13T2",54,53.5,"N"],[316,"Year 13","13T1",54,38.0,"N"],[317,"Year 13","13T2",54,48.5,"Y"],[318,"Year 13","13T1",54,51.0,"N"],[319,"Year 13","13T1",54,53.0,"N"],[320,"Year 13","13T2",54,52.0,"N"],[321,"Year 13","13T1",54,49.0,"N"],[322,"Year 13","13T1",54,41.5,"N"],[323,"Year 13","13T1",54,53.5,"N"],[324,"Year 13","13T1",54,40.5,"N"],[325,"Year 13","13T1",24,23.5,"Y"],[326,"Year 13","13T2",54,49.0,"Y"],[327,"Year 13","13T1",54,53.0,"N"],[328,"Year 13","13T2",54,51.5,"N"],[329,"Year 13","13T2",54,44.0,"N"],[330,"Year 13","13T2",54,42.0,"Y"],[331,"Year 13","13T2",54,53.5,"N"],[332,"Year 13","13T2",54,53.5,"N"],[333,"Year 13","13T1",54,43.5,"N"],[334,"Year 13","13T2",54,52.5,"Y"],[335,"Year 13","13T1",54,51.0,"N"],[336,"Year 13","13T2",30,24.0,"N"],[337,"Year 13","13T1",54,44.0,"Y"],[338,"Year 13","13T1",54,34.5,"N"],[339,"Year 13","13T2",54,50.5,"Y"],[340,"Year 13","13T1",54,46.0,"N"],[341,"Year 13","13T1",54,52.5,"N"],[342,"Year 13","13T1",54,53.5,"N"],[343,"Year 13","13T1",54,49.5,"N"],[344,"Year 13","13T2",54,46.0,"N"],[345,"Year 13","13T2",54,52.0,"Y"],[346,"Year 13","13T1",54,53.0,"Y"],[347,"Year 13","13T2",54,22.0,"Y"],[348,"Year 13","13T2",54,46.5,"N"],[349,"Year 13","13T2",54,53.5,"Y"],[350,"Year 13","13T2",54,52.0,"Y"],[351,"Year 9","9A",0,0,"N"],[352,"Year 11","11B",0,0,"Y"]];
 const KEY = 'rainfordAttendanceMilestones.v5';
 const API = (typeof google!=='undefined' && google.script && google.script.run) ? google.script.run : null; // set when running inside Apps Script
-const ROLE_NAMES = {vp:'Vice Principal', ll:'Learning Leader', pl:'Pastoral Leader', tutor:'Tutor'};
+const ROLE_NAMES = {vp:'Vice Principal', am:'Attendance Manager', ll:'Learning Leader', pl:'Pastoral Leader', tutor:'Tutor'};
 const isPastoral = r => r==='ll' || r==='pl';
+const vpLike = r => r==='vp' || r==='am';   // the attendance manager sees everything the VP does
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const DEFAULT_GROUPS = [
   {id:'near90', name:'Close to 90%', type:'near', days:6, pct:90},
@@ -743,7 +787,7 @@ const tutorName = code => {
 const mockTutorName = code => { const h = hashStr(code); return TITLES[h%TITLES.length]+' '+TSUR[(h>>>3)%TSUR.length]; };
 const pastoralName = y => (y||'No year')+' Pastoral'; // only used for old saved logs
 const isFormGroup = code => code && !/REFLECT|^CC/i.test(code);
-let user = null; // {role:'vp'|'ll'|'pl'|'tutor', year, tutor, name, email}
+let user = null; // {role:'vp'|'am'|'ll'|'pl'|'tutor', year, tutor, name, email}
 const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
 
 /* ---------- dates ---------- */
@@ -910,7 +954,7 @@ function seed(){
     } else prev[id] = {...s};
   });
   state = {
-    settings:{tmode:'pct', tPct:90, tDays:10, tNear:5, tutorDays:5, offDrop:1, ciDays:3, tGoal:90, lastDay:'2027-07-16', closed:exampleClosed(), useManual:false, manualDays:135,
+    settings:{tmode:'pct', tPct:90, tDays:10, tNear:5, tutorDays:5, offDrop:1, ciDays:3, ciMax:3, uFrom:'', uMin:5, uSteps:[0,5,10], tGoal:90, lastDay:'2027-07-16', closed:exampleClosed(), useManual:false, manualDays:135,
       rewards:DEFAULT_REWARDS.map(r=>({...r})), groups:DEFAULT_GROUPS.map(g=>({...g})), clock:'live', clockDay:'3', clockTime:'10:15'},
     uploads:[],
     firstListed:{}, log:[], members:{}, staff:mockStaff()
@@ -927,7 +971,16 @@ function seed(){
     let P = p0.P, A = p0.A;
     days.forEach((d,i) => { P += 1; A += (sessions[i*2] + sessions[i*2+1])/2; daily[i][id] = {...c, P, A}; });
   });
+  { const ru = mulberry(7);
+    Object.keys(cur).forEach(id => { const c = cur[id], late = ru(); const total = late < .72 ? Math.floor(ru()*4) : Math.round((c.P - c.A)*0.15 + ru()*8);
+      c.u = total; const gain = Math.min(total, Math.floor(ru()*4)); prev[id].u = total - gain;
+      daily.forEach((r,i) => { if(r[id]) r[id].u = total - Math.round(gain*(1 - (i+1)/daily.length)); }); }); }
   state.uploads = [{date:prevDate, rows:prev}].concat(days.map((d,i) => ({date:d, rows:daily[i]})));
+  { const back = schoolDaysBack(today, 12);   // made-up U-code check-ins so the U codes tab shows a mix of due, coming up and done
+    Object.keys(cur).forEach(id => { const u = cur[id].u; if(u < 5) return; const k = (+id) % 4;
+      if(k===1) state.log.push({sid:+id, type:'ucheck', m:u-1, date:back[3], staff:'Mrs Ashworth'});
+      if(k===2) state.log.push({sid:+id, type:'ucheck', m:u-2, date:back[11], staff:'Mrs Ashworth'}, {sid:+id, type:'ucheck', m:u-1, date:back[6], staff:'Mrs Ashworth'});
+      if(k===3) state.log.push({sid:+id, type:'ucheck', m:u-1, date:back[6], staff:'Mrs Ashworth'}); }); }
   // who's new this upload: pick 9 students
   const ids = Object.keys(cur).map(Number).filter(id => cur[id].P>0);
   const newIds = new Set(ids.filter(id => id%13===4 || id%17===9));
@@ -980,7 +1033,7 @@ function seed(){
 }
 function mockStaff(){
   const years = ['Year 7','Year 8','Year 9','Year 10','Year 11','Year 12','Year 13'];
-  const out = [{email:'vp@rainford.example', name:'Mr Gaskell', role:'vp', year:''}];
+  const out = [{email:'vp@rainford.example', name:'Mr Gaskell', role:'vp', year:''}, {email:'am@rainford.example', name:'Mrs Ashworth', role:'am', year:''}];
   years.forEach((y,i) => {
     out.push({email:'ll'+yearNum(y)+'@rainford.example', name:TITLES[i%6]+' '+['Okafor','Brennan','Whitfield','Haydock','Sutcliffe','Ormerod','Pennington'][i], role:'ll', year:y});
     out.push({email:'pl'+yearNum(y)+'@rainford.example', name:TITLES[(i+3)%6]+' '+['Aspinall','Draper','Kershaw','Lunt','Moss','Rigby','Tyrer'][i], role:'pl', year:y});
@@ -1039,20 +1092,20 @@ function bootFromServer(){
     if(b.error){ $('loading').classList.add('on'); $('loadingMsg').textContent = b.error; return; }
     // rebuild each day's rows from today's student details plus the compact history
     const info0 = {}; (b.current||[]).forEach(s => info0[s.id] = s);
-    const uploads = (b.snaps||[]).map(sn => { const rows = {}; Object.keys(sn.d).forEach(id => { const c = info0[id]; if(c) rows[id] = {...c, P:sn.d[id][0], A:sn.d[id][1]}; }); return {date:sn.date, rows}; });
+    const uploads = (b.snaps||[]).map(sn => { const rows = {}; Object.keys(sn.d).forEach(id => { const c = info0[id]; if(c) rows[id] = {...c, P:sn.d[id][0], A:sn.d[id][1], u: sn.d[id].length > 2 ? sn.d[id][2] : null}; }); return {date:sn.date, rows}; });
     state = {settings:b.settings, uploads, firstListed:b.firstListed||{}, log:b.log||[], members:b.members||{}, staff:b.staff||[], tutors:b.tutors||{}, lastImport:b.lastImport||'', staffCodesCount: b.staffCodes ? b.staffCodes.count : 0, importError:b.importError||''};
     user = b.user; viewOptions = b.viewOptions || null;
     normaliseState();
     TT = b.tt ? buildTT(b.tt.classes, b.tt.map) : null; TT_META = b.tt ? b.tt.meta : null;
     if(!state.uploads.length){
       $('loading').classList.add('on');
-      if(user.role==='vp'){ $('loadingMsg').textContent = 'Welcome, '+user.name+'. There is no attendance data yet.'; $('firstUp').style.display = ''; $('fuDate').value = $('fuDate').value || TODAY; }
+      if(vpLike(user.role)){ $('loadingMsg').textContent = 'Welcome, '+user.name+'. There is no attendance data yet.'; $('firstUp').style.display = ''; $('fuDate').value = $('fuDate').value || TODAY; }
       else $('loadingMsg').textContent = 'No attendance data yet. Ask the Vice Principal to upload it.';
       return;
     }
     $('firstUp').style.display = 'none';
     if(user.role==='tutor' && !(user.forms||[]).length && !user.viewing){ showFormPicker(b.forms||[]); return; }
-    if(user.role==='vp' && !bootedOnce){ curList = 'all'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l==='all')); }
+    if(vpLike(user.role) && !bootedOnce){ curList = 'all'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l==='all')); }
     bootedOnce = true;
     renderAll();
   }).withFailureHandler(e => { $('loadingMsg').textContent = 'Couldn\'t load: ' + (e.message||e); }).getBootstrap(currentView);
@@ -1157,7 +1210,7 @@ function infoCalc(s){
   const reachable = need!=null && need <= L;
   const byDate = (need!=null && need>0 && reachable) ? nthSchoolDayAfter(dataDate(), Math.ceil(need)) : null;
   const rewardDue = !!(activeGoal && p >= activeGoal.m - 1e-9 && !rewarded.has(activeGoal.m));
-  const contacts = logs.filter(l=>l.type!=='tutor' && l.type!=='tutoraway');
+  const contacts = logs.filter(l => CONTACT_TYPES.includes(l.type));   // pastoral contacts (not tutor chats, not "not in", not U-code check-ins)
   const last = contacts.length ? contacts[contacts.length-1] : null;
   const sinceContact = last ? schoolDaysBetween(last.date, TODAY >= dataDate() ? TODAY : dataDate()) : null;
   const ever = contacts.length>0;
@@ -1175,6 +1228,8 @@ function infoCalc(s){
   const tg = (state.members.da17||{})[s.id] || null;   // kept for older screens: DA-17 membership
   const tGoal = (groupById('da17')||{}).goal || +state.settings.tGoal || 90;
   const isNew = !ever && (inScope || inGroup);
+  const ciDone = logs.filter(l => l.type==='checkin').length, ciMax = +(state.settings.ciMax ?? 3);
+  const finished = ciMax > 0 && ciDone >= ciMax;   // had all their check-ins: off the check-in list unless declining
   let list = null;
   if(rewardDue) list = 'reward';
   else if(isNew) list = 'new';
@@ -1183,12 +1238,60 @@ function infoCalc(s){
   let atGoal = null, offTrack = false, drop = 0;
   if(last && !rewardDue && last.date < dataDate()){ const g = uploadOn(last.date).rows[s.id]; if(g && g.P>0){ atGoal = g.A/g.P*100; drop = atGoal - p; offTrack = drop > (+state.settings.offDrop||1) - 1e-9; } }
   const tStatus = !tg ? null : p >= tGoal - 1e-9 ? 'done' : tg.start==null ? 'same' : p > tg.start + 0.05 ? 'up' : p < tg.start - 0.05 ? 'down' : 'same';
-  const checkDue = list==='check' && (offTrack || (!activeGoal && target!=null) || sinceContact==null || sinceContact >= +state.settings.ciDays);
+  if(list==='check' && finished && !offTrack) list = null;
+  const checkDue = list==='check' && (offTrack || sinceContact==null || sinceContact >= +state.settings.ciDays);
+  // ticked off today: what was done, and on which list it counts
+  const todays = logs.filter(l => l.date===TODAY);
+  const notinToday = todays.find(l => l.type==='notin') || null;
+  let doneOn = null, doneHow = null;
+  const rwToday = todays.find(l => l.type==='reward'), firstToday = contacts.length && contacts[0].date===TODAY ? contacts[0] : null;
+  const contactToday = todays.filter(l => l.type==='checkin' || l.type==='goal').pop();
+  if(rwToday){ doneOn = 'reward'; doneHow = 'reward'; }
+  else if(firstToday){ doneOn = 'new'; doneHow = firstToday.type; }
+  else if(contactToday){ doneOn = 'check'; doneHow = contactToday.type; }
+  else if(notinToday && list){ doneOn = list; doneHow = 'notin'; }
+  const outstanding = !!list && doneOn!==list && (list!=='check' || checkDue);
+  const overdue = !outstanding ? null : list==='new' ? (first && first < TODAY ? schoolDaysBetween(first, TODAY) : 0)
+    : list==='check' && sinceContact!=null && sinceContact >= +state.settings.ciDays ? sinceContact - +state.settings.ciDays : 0;
   const streak = streakDays(s.id);
   const prev = prevUpload() && prevUpload().rows[s.id];
   const change = prev && prev.P>0 && p!=null ? p - prev.A/prev.P*100 : null;
-  return {p, logs, rewarded, activeGoal, nextM, target, need, best, reachable, byDate, rewardDue, last, sinceContact, inScope, first, isNew, list, checkDue, change, atGoal, offTrack, drop, streak, tg, tStatus, groups, ever, nextNeed, tutorWin, tutorChat, tutorAway,
+  return {p, logs, rewarded, activeGoal, nextM, target, need, best, reachable, byDate, rewardDue, last, sinceContact, inScope, first, isNew, list, checkDue, ciDone, ciMax, finished, doneOn, doneHow, outstanding, overdue, notinToday, change, atGoal, offTrack, drop, streak, tg, tStatus, groups, ever, nextNeed, tutorWin, tutorChat, tutorAway,
     need90: daysNeeded(s.A,s.P,.9), need95: daysNeeded(s.A,s.P,.95), L};
+}
+
+const CONTACT_TYPES = ['checkin','goal','reward'];
+const DONE_LABEL = {checkin:'✓ Checked in', goal:'✓ Goal set', reward:'✓ Reward given', notin:'Not in today'};
+/* ---------- U codes: the attendance manager's list ---------- */
+function uFromDate(){ const st = state.settings; if(st.uFrom) return st.uFrom; const t = parseISO(TODAY); return (t.getMonth() >= 7 ? t.getFullYear() : t.getFullYear()-1) + '-09-01'; }
+function uSteps(){ const a = (state.settings.uSteps||[0]).map(n => Math.max(0, Math.round(+n||0))); return a.length ? a : [0]; }
+function uInfo(s){
+  const k = 'u:'+s.id; if(MEMO[k] !== undefined) return MEMO[k];
+  if(s.u==null) return MEMO[k] = null;
+  const from = uFromDate(), min = Math.max(1, +state.settings.uMin||5), steps = uSteps(), N = steps.length;
+  // total on the start date: the latest upload on or before it that has a U figure (none: count everything)
+  const ups = state.uploads, before = ups.filter(u => u.date <= from && u.rows[s.id] && u.rows[s.id].u!=null).pop();
+  const base = before ? before.rows[s.id].u : 0;
+  const since = d => { const r = d.rows[s.id]; return r && r.u!=null ? Math.max(0, r.u - base) : null; };
+  const now = Math.max(0, s.u - base);
+  const logs = logsFor(s.id).filter(l => l.type==='ucheck');
+  const todays = logsFor(s.id).filter(l => l.date===TODAY && (l.type==='ucheck' || l.type==='unotin'));
+  const doneToday = todays.find(l => l.type==='ucheck') || todays.find(l => l.type==='unotin') || null;
+  const doneN = logs.length, step = doneN % N, rounds = Math.floor(doneN / N);
+  let triggered = false, trigDate = null;
+  if(step > 0) triggered = true;                       // part way through a round
+  else {
+    const last = logs[logs.length-1], baseU = last ? (+last.m||0) : 0, after = last ? last.date : from;
+    if(now - baseU >= min){ triggered = true; const hit = ups.find(u => u.date > after && since(u)!=null && since(u) - baseU >= min); trigDate = hit ? hit.date : dataDate(); }
+  }
+  let due = null, outstanding = false, overdue = null;
+  if(triggered){
+    const from0 = step===0 ? trigDate : logs[logs.length-1].date;
+    due = steps[step] ? nthSchoolDayAfter(from0, steps[step]) : from0;
+    outstanding = due <= TODAY && !doneToday;
+    if(outstanding) overdue = due < TODAY ? schoolDaysBetween(due, TODAY) : 0;
+  }
+  return MEMO[k] = {now, total:s.u, base, from, min, steps, N, step, rounds, doneN, triggered, trigDate, due, outstanding, overdue, doneToday, last: logs[logs.length-1]||null};
 }
 
 /* ---------- rendering: lists ---------- */
@@ -1206,7 +1309,7 @@ function students(){
 const LIST_HINT = {
   new:'On the list for the first time and not met yet. Meet them and set a goal, and they move to check-in.',
   reward:'Reached the milestone they were set. Pick the reward you gave to log it. Each milestone is rewarded once.',
-  check:'Seen before. Due means not seen for {n} school days. Declining means attendance has dropped since they were last seen.',
+  check:'Due when it\'s {n} school days since they were last seen, up to {c} check-ins each. Declining means attendance has dropped since they were last seen. Tap Not in if they\'re absent: they come back tomorrow.',
   all:'Every student. Tick students, then add them to a group. Click a heading to sort.'
 };
 
@@ -1241,15 +1344,16 @@ function statusPill(f){
 
 function renderLists(){
   const all = students().map(s => ({s, f:info(s)}));
-  const counts = {new:0, reward:0, check:0}, due = all.filter(x=>x.f.list==='check'&&x.f.checkDue).length;
-  all.forEach(x => { if(x.f.list) counts[x.f.list]++; });
+  const counts = {new:0, reward:0, check:0}, doneN = {new:0, reward:0, check:0};
+  all.forEach(x => { if(x.f.outstanding) counts[x.f.list]++; if(x.f.doneOn) doneN[x.f.doneOn]++; });
   $('c-new').textContent = counts.new; $('c-reward').textContent = counts.reward;
   $('c-check').textContent = counts.check;
+  ['new','reward','check'].forEach(k => { const b = document.querySelector('#seg button[data-l='+k+'] .count'); b.classList.toggle('zero', !counts[k]); b.title = counts[k] ? counts[k]+' still to do today' : 'All done'+(doneN[k]?': '+doneN[k]+' ticked off today':''); if(!counts[k] && doneN[k]) b.textContent = '✓'; });
   const onList = all.filter(x=>x.f.list).length;
   renderStale();
-  $('databar').innerHTML = esc(`${daysLeft()} school days left · data from ${nice(dataDate())}`) + (API && user.role==='vp' && state.importError ? ` · <span style="color:var(--bad)">⚠ Synergy import failed: see Settings</span>` : '');
-  $('listhint').innerHTML = esc(LIST_HINT[curList].replace('{n}', state.settings.ciDays)) + (jumpFilter==='declining' ? ' <button class="jumpchip" id="jumpClear">Declining only ✕</button>' : '');
-  const nf = ['fYear','fTutor','fBand','fBlock','fGroup'].filter(id=>$(id).value && $(id).style.display!=='none').length + ($('fDue').checked&&curList==='check'?1:0);
+  $('databar').innerHTML = esc(`${daysLeft()} school days left · data from ${nice(dataDate())}`) + (API && vpLike(user.role) && state.importError ? ` · <span style="color:var(--bad)">⚠ Synergy import failed: see Settings</span>` : '');
+  $('listhint').innerHTML = esc(LIST_HINT[curList].replace('{n}', state.settings.ciDays).replace('up to {c} check-ins each', +(state.settings.ciMax??3) ? 'up to '+(state.settings.ciMax??3)+' check-ins each' : 'with no limit on check-ins')) + (jumpFilter==='declining' ? ' <button class="jumpchip" id="jumpClear">Declining only ✕</button>' : '');
+  const nf = ['fYear','fTutor','fBand','fBlock','fGroup','fCheck'].filter(id=>$(id).value && $(id).style.display!=='none').length + ($('fDue').checked&&curList==='check'?1:0);
   $('fBtn').textContent = nf ? 'Filter ('+nf+')' : 'Filter';
   $('dueWrap').style.display = curList==='check' ? '' : 'none';
 
@@ -1260,19 +1364,23 @@ function renderLists(){
   const tutors = [...new Set(students().filter(s=>!fy||(s.year||'No year')===fy).map(s=>s.tutor))].sort();
   fillSelect($('fTutor'), tutors, 'All tutor groups');
   const q = $('q').value.trim().toLowerCase(), ft = $('fTutor').value, fb = $('fBand').value, fd = $('fDue').checked;
-  const isVP = user.role==='vp';
+  const isVP = vpLike(user.role);
   if(isVP && !user.viewing && !vpRestored){ restoreVPView(); }
+  $('fCheck').style.display = isVP ? '' : 'none';
   $('segAll').style.display = isVP ? '' : 'none'; $('c-all').textContent = all.length;
   if(!isVP && curList==='all') curList = 'new';
   $('fSort').style.display = isVP ? 'none' : '';
-  let rows = curList==='all' ? all.slice() : all.filter(x => x.f.list===curList);
+  let rows = curList==='all' ? all.slice() : all.filter(x => x.f.list===curList && (x.f.outstanding || (curList==='check' && fd && x.f.doneOn!=='check')));
+  let doneRows = curList==='all' ? [] : all.filter(x => x.f.doneOn===curList);
   if(q) rows = rows.filter(x => (x.s.name+' '+x.s.tutor).toLowerCase().includes(q));
   if(fy) rows = rows.filter(x => (x.s.year||'No year')===fy);
   if(ft) rows = rows.filter(x => x.s.tutor===ft);
   if(fb){ const [lo,hi] = fb.split('-').map(Number); rows = rows.filter(x => x.f.p>=lo && x.f.p<hi); }
-  if(curList==='check' && fd) rows = rows.filter(x => x.f.checkDue);
   if(jumpFilter==='declining') rows = rows.filter(x => x.f.offTrack);
   const fg = $('fGroup').value; if(fg==='da') rows = rows.filter(x => x.s.da); else if(fg==='any') rows = rows.filter(x => x.f.groups.length); else if(fg) rows = rows.filter(x => x.f.groups.some(g => g.id===fg));
+  const fc = isVP ? $('fCheck').value : ''; if(fc==='not') rows = rows.filter(x => x.f.outstanding); else if(fc==='done') rows = rows.filter(x => x.f.list && !x.f.outstanding); else if(fc==='today') rows = rows.filter(x => x.f.doneOn); else if(fc==='finished') rows = rows.filter(x => x.f.finished);
+  // done-today cards get the same filters as the rest
+  doneRows = doneRows.filter(x => (!q || (x.s.name+' '+x.s.tutor).toLowerCase().includes(q)) && (!fy || (x.s.year||'No year')===fy) && (!ft || x.s.tutor===ft) && (fg!=='da' || x.s.da) && (fg!=='any' || x.f.groups.length) && (!fg || fg==='da' || fg==='any' || x.f.groups.some(g => g.id===fg)));
   $('fBlock').style.display = hasTimetable() ? '' : 'none';
   { const v = $('fGroup').value; $('fGroup').innerHTML = '<option value="">All students</option><option value="da">DA only</option><option value="any">In any group</option>' + groupList().map(g => `<option value="${esc(g.id)}">${esc(g.name)}</option>`).join(''); $('fGroup').value = [...$('fGroup').options].some(o=>o.value===v) ? v : ''; }
   if(!hasTimetable() && $('fSort').value==='loc') $('fSort').value = 'days';
@@ -1291,21 +1399,35 @@ function renderLists(){
     const da = a.f.reachable? a.f.need : 999, db = b.f.reachable? b.f.need : 999;
     return da-db || a.f.p-b.f.p;
   });
-  if(!rows.length && !isVP){ $('cards').style.display=''; $('vpWrap').style.display='none'; $('cards').innerHTML = `<div class="empty">No students here${q||fy||ft||fb||fd||$('fBlock').value||jumpFilter?' with these filters':''}.</div>`; return; }
+  const doneHTML = () => doneRows.length ? `<details class="donesec" ${doneOpen?'open':''}><summary>✓ Done today (${doneRows.length})</summary><div class="cards">${doneRows.sort((a,b)=>a.s.name.localeCompare(b.s.name)).map(x => cardHTML(x, true)).join('')}</div></details>` : '';
+  if(!rows.length && !isVP){ $('cards').style.display=''; $('vpWrap').style.display='none'; $('cards').innerHTML = (doneRows.length && !(q||fy||ft||fb||$('fBlock').value||jumpFilter) ? `<div class="empty alldone">✓ All done for today. Nobody left on this list.</div>` : `<div class="empty">No students here${q||fy||ft||fb||$('fBlock').value||jumpFilter?' with these filters':''}.</div>`) + doneHTML(); return; }
   $('cards').style.display = isVP ? 'none' : ''; $('vpWrap').style.display = isVP ? '' : 'none';
   if(isVP){ renderVPTable(rows); saveVPView(); return; }
   let lastG = null;
   const total = rows.length; rows = rows.slice(0, cardLimit);
-  $('cards').innerHTML = rows.map(({s,f,w,loc}) => {
+  $('cards').innerHTML = rows.map(x => {
     let head = '';
-    if(sort==='loc'){ const g = lkey(loc); if(g!==lastG){ lastG = g; const n = rows.filter(x=>lkey(x.loc)===g).length; head = `<div class="grouphead">${loc ? ZONES[loc.z]+' block · '+FLOORS[loc.f] : 'No room (form time, PE, study periods and others)'} <span>${n}</span></div>`; } }
-    const gs = user.role!=='tutor' ? f.groups : [];
-    return head + `<button class="card${String(s.id)===String(selId)?' sel':''}${gs.length?' ingroup':''}" data-id="${esc(s.id)}"${gs.length?` style="border-left-color:${groupCol(gs[0])[0]}"`:''}>
+    if(sort==='loc'){ const g = lkey(x.loc); if(g!==lastG){ lastG = g; const n = rows.filter(y=>lkey(y.loc)===g).length; head = `<div class="grouphead">${x.loc ? ZONES[x.loc.z]+' block · '+FLOORS[x.loc.f] : 'No room (form time, PE, study periods and others)'} <span>${n}</span></div>`; } }
+    return head + cardHTML(x, false); }).join('') + (total > rows.length ? `<button class="btn morebtn" id="moreCards">Show ${Math.min(50, total-rows.length)} more (${total-rows.length} not shown)</button>` : '') + doneHTML();
+}
+let doneOpen = false;
+function cardHTML({s,f,w}, done){
+  if(w===undefined) w = whereNow(s);
+  const gs = user.role!=='tutor' ? f.groups : [];
+  const side = done ? `<span class="donebadge${f.doneHow==='notin'?' notin':''}">${DONE_LABEL[f.doneHow]||'✓ Done'}</span>`
+    : `<span class="cardside">${curList==='check'?statusShort(f):''}${f.outstanding?`<span class="notinbtn" data-notin="${esc(s.id)}" role="button" title="Not in school today: they come back tomorrow">Not in</span>`:''}</span>`;
+  return `<button class="card${String(s.id)===String(selId)?' sel':''}${gs.length?' ingroup':''}${done?' done':''}" data-id="${esc(s.id)}"${gs.length?` style="border-left-color:${groupCol(gs[0])[0]}"`:''}>
       ${gs.length ? `<div class="gband">${gs.map(gPill).join('')}</div>` : ''}<div class="nm">${esc(s.name)}</div><div class="pct">${fmtPct(f.p)}</div>
-      <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}</div>${curList==='check'?statusShort(f):'<span></span>'}
-      <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}</div>
-      ${hasTimetable() ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
-    </button>`; }).join('') + (total > rows.length ? `<button class="btn morebtn" id="moreCards">Show ${Math.min(50, total-rows.length)} more (${total-rows.length} not shown)</button>` : '');
+      <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} ${streakTxt(f)}</div>${side}
+      <div class="goal">${goalShort(f)}${f.byDate&&!f.rewardDue?' <span class="cellmeta">· by '+nice(f.byDate)+'</span>':''}${curList==='check'&&f.ciMax&&!done?` <span class="cellmeta">· check-in ${Math.min(f.ciDone+1,f.ciMax)} of ${f.ciMax}</span>`:''}</div>
+      ${hasTimetable() && !done ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
+    </button>`;
+}
+function markNotIn(id, type){
+  const s = curUpload().rows[id]; if(!s) return;
+  lastAction = addLog({sid:s.id, type:type||'notin', date:TODAY, staff:user.name, t:Date.now()});
+  toast('Not in today: '+s.name.split(', ').reverse().join(' ')+' comes back tomorrow');
+  renderAll();
 }
 function changeTag(c){
   if(Math.abs(c)<0.05) return `<span class="tag grey">no change</span>`;
@@ -1325,8 +1447,9 @@ function renderViewSwitcher(){
   if(!admin) return;
   const opts = API ? viewOptions : {years: [...new Set(allStudents().map(s=>s.year))].filter(Boolean).sort((a,b)=>yearNum(a)-yearNum(b)), forms: [...new Set(allStudents().map(s=>s.tutor))].filter(Boolean).sort().map(f => ({code:f, year:(allStudents().find(s=>s.tutor===f)||{}).year}))};
   if(!opts) return;
-  const cur = user.viewing ? (user.role==='tutor' ? 'tutor|'+user.tutor : user.role+'|'+user.year) : 'vp';
+  const cur = user.viewing ? (user.role==='tutor' ? 'tutor|'+user.tutor : user.role==='am' ? 'am|' : user.role+'|'+user.year) : 'vp';
   sel.innerHTML = `<option value="vp">My view (Vice Principal)</option>
+    <option value="am|">Attendance Manager view</option>
     <optgroup label="Learning Leader view">${opts.years.map(y => `<option value="ll|${esc(y)}">Learning Leader · ${esc(y)}</option>`).join('')}</optgroup>
     <optgroup label="Pastoral Leader view">${opts.years.map(y => `<option value="pl|${esc(y)}">Pastoral Leader · ${esc(y)}</option>`).join('')}</optgroup>
     <optgroup label="Tutor view">${opts.forms.map(f => `<option value="tutor|${esc(f.code)}">Tutor · ${esc(f.code)}</option>`).join('')}</optgroup>`;
@@ -1335,10 +1458,10 @@ function renderViewSwitcher(){
 $('viewAs').onchange = e => {
   const [role, val] = e.target.value.split('|');
   closeStudent(); vpSel.clear(); window.scrollTo(0,0);
-  if(API){ currentView = role==='vp' ? null : {role, year: role==='tutor' ? '' : val, form: role==='tutor' ? val : ''}; curList = role==='vp' ? 'all' : 'new'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList)); bootFromServer(); return; }
+  if(API){ currentView = role==='vp' ? null : {role, year: role==='tutor' ? '' : val, form: role==='tutor' ? val : ''}; curList = role==='vp'||role==='am' ? 'all' : 'new'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList)); bootFromServer(); return; }
   realUser = realUser || user;
   if(role==='vp'){ user = realUser; realUser = null; curList = 'all'; }
-  else { user = {role, name: realUser.name, email: realUser.email, viewing:true, year: role==='tutor' ? '' : val, tutor: role==='tutor' ? val : '', forms: role==='tutor' ? [val] : []}; curList = 'new'; }
+  else { user = {role, name: realUser.name, email: realUser.email, viewing:true, year: role==='tutor'||role==='am' ? '' : val, tutor: role==='tutor' ? val : '', forms: role==='tutor' ? [val] : []}; curList = role==='am' ? 'all' : 'new'; }
   document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList));
   renderAll();
 };
@@ -1348,14 +1471,17 @@ let vpSort = {k:'pct', dir:1}, vpSel = new Set(), vpLimit = 100, vpRows = [];
 const VP_COLS = [
   ['name','Student', x => x.s.name], ['year','Year', x => yearNum(x.s.year)], ['form','Form', x => x.s.tutor], ['da','DA', x => x.s.da?0:1],
   ['pct','Attendance', x => x.f.p], ['change','Change', x => x.f.change ?? 0], ['next','Next', x => x.f.target ?? 999],
-  ['days','Days', x => x.f.rewardDue ? -1 : x.f.reachable ? x.f.need : 999], ['status','Status', x => vpStatus(x.f)[1]],
+  ['days','Days', x => x.f.rewardDue ? -1 : x.f.reachable ? x.f.need : 999], ['status','Status', x => vpStatus(x.f)[1]], ['overdue','Overdue', x => x.f.overdue ?? -1],
   ['groups','Groups', x => x.f.groups.map(g=>g.name).join(', ') || '~'], ['last','Last seen', x => x.f.last ? x.f.last.date : '0']];
 function vpStatus(f){
+  if(f.doneOn) return [`<span class="tag ${f.doneHow==='notin'?'grey':'ok'}">${f.doneHow==='notin'?'Not in today':DONE_LABEL[f.doneHow]+' today'}</span>`, 6];
   if(f.list==='reward') return ['<span class="tag ok">Reward due</span>', 1];
   if(f.list==='new') return ['<span class="tag gold">New</span>', 2];
   if(f.list==='check'){ if(f.offTrack) return ['<span class="tag bad">Declining</span>', 0]; if(!f.activeGoal) return ['<span class="tag warn">Needs goal</span>', 3]; if(f.checkDue) return ['<span class="tag warn">Due</span>', 4]; return ['<span class="tag grey">Seen</span>', 5]; }
+  if(f.finished) return [`<span class="tag grey">All ${f.ciMax} check-ins done</span>`, 8];
   return ['<span class="cellmeta">Not on list</span>', 9];
 }
+const overdueTxt = f => f.overdue==null ? '' : f.overdue===0 ? '<span class="tag warn">Today</span>' : `<span class="tag bad">${f.overdue} day${f.overdue===1?'':'s'}</span>`;
 function renderVPTable(rows){
   const col = VP_COLS.find(c => c[0]===vpSort.k) || VP_COLS[4];
   rows.sort((a,b) => { const x = col[2](a), y = col[2](b); return (x<y?-1:x>y?1:0)*vpSort.dir || a.s.name.localeCompare(b.s.name); });
@@ -1363,13 +1489,13 @@ function renderVPTable(rows){
   const ids = new Set(rows.map(x => String(x.s.id)));
   [...vpSel].forEach(id => { if(!curUpload().rows[id]) vpSel.delete(id); });
   const shown = rows.slice(0, vpLimit), allTicked = rows.length && rows.every(x => vpSel.has(String(x.s.id)));
-  $('vpTable').innerHTML = `<thead><tr><th class="ck"><input type="checkbox" id="vpAll" ${allTicked?'checked':''} title="Tick all ${rows.length}"></th>${VP_COLS.map(([k,l]) => `<th data-sort="${k}" class="${['pct','change','days','next'].includes(k)?'num ':''}sortable">${l}${vpSort.k===k ? (vpSort.dir>0?' ▲':' ▼') : ''}</th>`).join('')}</tr></thead><tbody>` +
+  $('vpTable').innerHTML = `<thead><tr><th class="ck"><input type="checkbox" id="vpAll" ${allTicked?'checked':''} title="Tick all ${rows.length}"></th>${VP_COLS.map(([k,l]) => `<th data-sort="${k}" class="${['pct','change','days','next','overdue'].includes(k)?'num ':''}sortable">${l}${vpSort.k===k ? (vpSort.dir>0?' ▲':' ▼') : ''}</th>`).join('')}</tr></thead><tbody>` +
     (shown.map(({s,f}) => { const id = String(s.id);
       return `<tr data-id="${esc(id)}" class="${vpSel.has(id)?'sel':''}"><td class="ck"><input type="checkbox" data-ck="${esc(id)}" ${vpSel.has(id)?'checked':''}></td>
         <td><b>${esc(s.name)}</b></td><td>${esc(String(yearNum(s.year)||''))}</td><td>${esc(s.tutor)}</td><td>${s.da?'<span class="datag">DA</span>':''}</td>
         <td class="num"><b>${fmtPct(f.p)}</b></td><td class="num">${f.change==null?'':changeTag(f.change)}</td>
         <td class="num">${f.target!=null?f.target+'%':''}</td><td class="num">${f.target==null?'':f.rewardDue?'✓':f.reachable?fmtDays(f.need).replace(' days','').replace(' day',''):'–'}</td>
-        <td>${vpStatus(f)[0]}</td><td>${f.groups.map(gPill).join(' ')}</td><td class="cellmeta">${f.last?nice(f.last.date):''}</td></tr>`; }).join('') || '<tr><td colspan="12" class="cellmeta">No students match.</td></tr>') + '</tbody>';
+        <td>${vpStatus(f)[0]}</td><td class="num">${overdueTxt(f)}</td><td>${f.groups.map(gPill).join(' ')}</td><td class="cellmeta">${f.last?nice(f.last.date):''}</td></tr>`; }).join('') || '<tr><td colspan="13" class="cellmeta">No students match.</td></tr>') + '</tbody>';
   $('vpMore').style.display = rows.length > vpLimit ? '' : 'none';
   $('vpMore').textContent = `Show ${Math.min(100, rows.length - vpLimit)} more (${rows.length - vpLimit} not shown)`;
   renderBulkBar(rows.length);
@@ -1406,6 +1532,81 @@ $('bulkBar').onclick = e => {
   }
 };
 
+/* ---------- U codes tab ---------- */
+function uCardHTML({s, u}, done){
+  const w = whereNow(s);
+  const when = done ? `<span class="donebadge${u.doneToday.type==='unotin'?' notin':''}">${u.doneToday.type==='unotin'?'Not in today':'✓ Checked in'}</span>`
+    : u.outstanding ? `<span class="cardside"><span class="st ${u.overdue?'bad':'warn'}">${u.overdue ? u.overdue+' day'+(u.overdue===1?'':'s')+' overdue' : 'Due today'}</span><span class="notinbtn" data-unotin="${esc(s.id)}" role="button">Not in</span></span>`
+    : `<span class="st">Due ${nice(u.due)}</span>`;
+  return `<button class="card${done?' done':''}" data-id="${esc(s.id)}">
+    <div class="nm">${esc(s.name)}</div><div class="pct ucount">${u.now}<small> U</small></div>
+    <div class="meta">${esc(s.year||'No year')} · ${esc(s.tutor)}${s.da?' <span class="datag">DA</span>':''} · ${fmtPct(info(s).p)}</div>${when}
+    <div class="goal">Check-in ${u.step+1} of ${u.N}${u.rounds?' <span class="cellmeta">· round '+(u.rounds+1)+'</span>':''}${u.last?' <span class="cellmeta">· last '+nice(u.last.date)+'</span>':''}</div>
+    ${hasTimetable() && !done ? `<div class="where">${PIN}<span>${w ? (w.now ? placeHTML(w)+' <span class="cellmeta">now</span>' : '<span class="cellmeta">Next '+DAYNAME[w.day].slice(0,3)+' '+w.per+':</span> '+placeHTML(w)) : 'No timetable'}</span><span class="loc">${w?locLabel(w.room):''}</span></div>` : ''}
+  </button>`;
+}
+let uDoneOpen = false;
+function renderUTab(){
+  const all = students().map(s => ({s, u:uInfo(s)})).filter(x => x.u);
+  if(!all.length){ $('uHint').textContent = 'The attendance file has no U column yet. Add a column headed U (the running total of U codes) to the Synergy report.'; $('uStats').innerHTML=''; $('uCards').innerHTML=''; return; }
+  const on = all.filter(x => x.u.triggered), due = on.filter(x => x.u.outstanding), done = all.filter(x => x.u.doneToday), soon = on.filter(x => !x.u.outstanding && !x.u.doneToday);
+  const st = state.settings, steps = uSteps();
+  $('uHint').textContent = `Students with ${Math.max(1,+st.uMin||5)} or more U codes since ${nice(uFromDate())}. ${steps.length} check-in${steps.length===1?'':'s'} each: ` + steps.map((n,i) => i===0 ? (n ? n+' school days after they reach it' : 'straight away') : n+' school days after the last').join(', then ') + '.';
+  $('uStats').innerHTML = [[due.length,'due now',due.length?'warn':''],[done.length,'done today',''],[soon.length,'coming up',''],[on.length,'on the list',''],[all.filter(x=>x.u.rounds && !x.u.triggered).length,'finished all check-ins','']]
+    .map(([v,k,c])=>`<div class="stat"><div class="v"${c?` style="color:var(--${c})"`:''}>${v}</div><div class="k">${k}</div></div>`).join('');
+  fillSelect($('uYear'), [...new Set(on.map(x=>x.s.year||'No year'))].sort((a,b)=>yearNum(a)-yearNum(b)), 'All years');
+  const q = $('uQ').value.trim().toLowerCase(), fy = $('uYear').value, show = $('uShow').value;
+  const ok = x => (!q || (x.s.name+' '+x.s.tutor).toLowerCase().includes(q)) && (!fy || (x.s.year||'No year')===fy);
+  let rows = (show==='due' ? due : show==='soon' ? soon : on.filter(x => !x.u.doneToday)).filter(ok);
+  rows.sort((a,b) => show==='soon' ? (a.u.due < b.u.due ? -1 : a.u.due > b.u.due ? 1 : 0) : (b.u.overdue??-1)-(a.u.overdue??-1) || b.u.now-a.u.now || a.s.name.localeCompare(b.s.name));
+  const dn = done.filter(ok);
+  $('uCards').innerHTML = (rows.length ? rows.slice(0, 200).map(x => uCardHTML(x, false)).join('')
+      : `<div class="empty${show==='due'&&dn.length?' alldone':''}">${show==='due' ? (dn.length ? '✓ All done for today.' : 'Nobody is due today.') : 'Nobody here.'}</div>`)
+    + (dn.length ? `<details class="donesec" id="uDone" ${uDoneOpen?'open':''}><summary>✓ Done today (${dn.length})</summary><div class="cards">${dn.map(x => uCardHTML(x, true)).join('')}</div></details>` : '');
+}
+['uQ','uYear','uShow'].forEach(id => $(id).addEventListener('input', renderUTab));
+$('uCards').onclick = e => {
+  const ni = e.target.closest('[data-unotin]'); if(ni){ e.preventDefault(); markNotIn(ni.dataset.unotin, 'unotin'); return; }
+  if(e.target.closest('#uDone > summary')){ setTimeout(() => { uDoneOpen = !!document.querySelector('#uDone[open]'); }, 0); return; }
+  const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id);
+};
+function recordU(type){
+  const s = curUpload().rows[selId], u = uInfo(s); if(!u) return;
+  if(type==='unotin'){ if(u.doneToday) return; markNotIn(s.id, 'unotin'); return; }
+  const note = ($('note')||{}).value || '';
+  const entry = {sid:s.id, type:'ucheck', m:u.now, date:TODAY, staff:user.name, t:Date.now()}; if(note.trim()) entry.note = note.trim();
+  lastAction = addLog(entry);
+  toast(`U-code check-in ${u.step+1} of ${u.N} logged for `+s.name.split(', ').reverse().join(' ')); renderAll();
+}
+function uBoxHTML(s){
+  const u = uInfo(s); if(!u || !vpLike(user.role)) return '';
+  const next = !u.triggered ? (u.rounds ? `All ${u.N} check-ins done. Back on the list if they get ${u.min} more.` : `Not on the list: goes on at ${u.min}.`)
+    : u.outstanding ? `Check-in ${u.step+1} of ${u.N} ${u.overdue ? 'is '+u.overdue+' school day'+(u.overdue===1?'':'s')+' overdue' : 'is due today'}.`
+    : u.doneToday ? (u.doneToday.type==='unotin' ? 'Marked not in today: back tomorrow.' : `Done today. Next: check-in ${u.step+1} of ${u.N} on ${nice(u.due)}.`)
+    : `Next: check-in ${u.step+1} of ${u.N} on ${nice(u.due)}.`;
+  return `<div class="ubox"><div class="grptitle">U codes</div>
+    <div class="row"><span class="ubig">${u.now}</span><span class="cellmeta">since ${nice(u.from)} (total ${u.total})</span></div>
+    <p class="cellmeta" style="margin:4px 0 8px">${next}</p>
+    ${u.triggered || u.doneToday ? `<div class="actions" style="margin:0">
+      <button class="act ${u.doneToday&&u.doneToday.type==='ucheck'?'done':''}" data-uact="ucheck" ${u.doneToday?'disabled':''}><span class="dot">✓</span><span>U-code check-in done<span class="sub">${u.last?'Last: '+nice(u.last.date)+' by '+esc(u.last.staff):'None yet'}</span></span></button>
+      <button class="act notin ${u.doneToday&&u.doneToday.type==='unotin'?'done':''}" data-uact="unotin" ${u.doneToday?'disabled':''}><span class="dot">✕</span><span>Not in today<span class="sub">Back on the list tomorrow</span></span></button></div>` : ''}
+  </div>`;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-uact]'); if(b && !b.disabled) recordU(b.dataset.uact); });
+function renderUSettings(){
+  const st = state.settings;
+  $('uFrom').value = uFromDate(); $('uMin').value = Math.max(1, +st.uMin||5);
+  const steps = uSteps();
+  $('uStepEdit').innerHTML = steps.map((n,i) => `<div class="row" style="margin:4px 0"><span style="min-width:90px">Check-in ${i+1}</span><input type="number" min="0" step="1" data-ustep="${i}" value="${n}"> <span class="cellmeta">school days ${i===0?'after they reach the number':'after check-in '+i}</span>${steps.length>1?` <button class="btn small danger" data-ustepdel="${i}">✕</button>`:''}</div>`).join('');
+  const n = allStudents().filter(s => uInfo(s) && uInfo(s).triggered).length, hasU = allStudents().some(s => s.u!=null);
+  $('uMsg').textContent = hasU ? `${n} student${n===1?'':'s'} on the list with these settings.` : '⚠ No U column in the attendance file yet.';
+}
+$('uFrom').onchange = e => setSetting('uFrom', e.target.value || '');
+$('uMin').onchange = e => setSetting('uMin', Math.max(1, Math.round(+e.target.value||5)));
+$('uStepEdit').onchange = e => { const i = e.target.dataset.ustep; if(i==null) return; const a = uSteps(); a[+i] = Math.max(0, Math.round(+e.target.value||0)); setSetting('uSteps', a); };
+$('uStepEdit').onclick = e => { const b = e.target.closest('[data-ustepdel]'); if(!b) return; const a = uSteps(); a.splice(+b.dataset.ustepdel, 1); setSetting('uSteps', a); };
+$('uStepAdd').onclick = () => { const a = uSteps(); a.push(a.length ? a[a.length-1] || 5 : 0); setSetting('uSteps', a); };
+
 /* ---------- old data warning ---------- */
 function renderStale(){
   const el = $('staleBar'); if(!el) return;
@@ -1413,21 +1614,21 @@ function renderStale(){
   if(age < 3){ el.style.display = 'none'; return; }
   el.style.display = '';
   el.innerHTML = `<b>⚠ This data is ${age} school days old</b> (from ${esc(nice(dataDate()))}). Days needed and lists may be wrong. ` +
-    (user && user.role==='vp' ? (API ? 'Check the Synergy import in Settings, or upload a new file.' : 'Upload a new file in Settings.') : 'Let the Vice Principal know.');
+    (user && vpLike(user.role) ? (API ? 'Check the Synergy import in Settings, or upload a new file.' : 'Upload a new file in Settings.') : 'Let the Vice Principal know.');
 }
 
 /* ---------- VP export ---------- */
 const plain = h => String(h).replace(/<[^>]*>/g,'').trim();
 function exportRows(){
-  return [['ID','Student','Year','Form','DA','Attendance %','Change (points)','Next milestone','Days needed','Status','Groups','Last seen','Seen by']]
+  return [['ID','Student','Year','Form','DA','Attendance %','Change (points)','Next milestone','Days needed','Status','Overdue (school days)','Groups','Last seen','Seen by','U codes since '+uFromDate()]]
     .concat(vpRows.map(({s,f}) => [s.id, s.name, s.year||'', s.tutor||'', s.da?'Y':'N', f.p==null?'':Math.round(f.p*10)/10, f.change==null?'':Math.round(f.change*10)/10,
-      f.target==null?'':f.target+'%', f.rewardDue?'Reward due':(f.reachable&&f.need!=null?f.need:''), plain(vpStatus(f)[0]), f.groups.map(g=>g.name).join(', '), f.last?f.last.date:'', f.last?(f.last.staff||''):'']));
+      f.target==null?'':f.target+'%', f.rewardDue?'Reward due':(f.reachable&&f.need!=null?f.need:''), plain(vpStatus(f)[0]), f.overdue==null?'':f.overdue, f.groups.map(g=>g.name).join(', '), f.last?f.last.date:'', f.last?(f.last.staff||''):'', uInfo(s) ? uInfo(s).now : '']));
 }
 function exportName(){ const g = $('fGroup').value, gn = g==='da'?'DA':g==='any'?'in a group':g?(groupById(g)||{}).name:''; return ['Attendance', gn, $('fYear').value, $('fTutor').value, TODAY].filter(Boolean).join(' ').replace(/[\\/:*?"<>|]/g,'-'); }
 async function exportXLSX(){
   try {
     const X = await loadXLSX(), aoa = exportRows(), ws = X.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [8,24,9,9,5,12,14,14,12,12,30,12,18].map(w=>({wch:w}));
+    ws['!cols'] = [8,24,9,9,5,12,14,14,12,16,12,30,12,18].map(w=>({wch:w}));
     ws['!autofilter'] = {ref: X.utils.encode_range({s:{r:0,c:0}, e:{r:aoa.length-1, c:aoa[0].length-1}})};
     const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Students');
     X.writeFile(wb, exportName()+'.xlsx');
@@ -1445,8 +1646,8 @@ function copyTable(){
 const VPVIEW_KEY = 'attendanceMilestones.vpView';
 let vpRestored = false;
 function saveVPView(){
-  if(!user || user.role!=='vp' || user.viewing || !vpRestored) return;
-  try { localStorage.setItem(VPVIEW_KEY, JSON.stringify({sort:vpSort, list:curList, fYear:$('fYear').value, fTutor:$('fTutor').value, fBand:$('fBand').value, fGroup:$('fGroup').value})); } catch(e){}
+  if(!user || !vpLike(user.role) || user.viewing || !vpRestored) return;
+  try { localStorage.setItem(VPVIEW_KEY, JSON.stringify({sort:vpSort, list:curList, fYear:$('fYear').value, fTutor:$('fTutor').value, fBand:$('fBand').value, fGroup:$('fGroup').value, fCheck:$('fCheck').value})); } catch(e){}
 }
 function restoreVPView(){
   vpRestored = true;
@@ -1455,7 +1656,7 @@ function restoreVPView(){
   if(v.sort && VP_COLS.some(c=>c[0]===v.sort.k)) vpSort = v.sort;
   if(['new','reward','check','all'].includes(v.list)){ curList = v.list; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList)); }
   const setSel = (id, val) => { const e = $(id); if(!val) return; if(![...e.options].some(o=>o.value===val)) e.insertAdjacentHTML('beforeend', `<option value="${esc(val)}">${esc(val)}</option>`); e.value = val; };
-  setSel('fYear', v.fYear); setSel('fTutor', v.fTutor); setSel('fBand', v.fBand); setSel('fGroup', v.fGroup);
+  setSel('fYear', v.fYear); setSel('fTutor', v.fTutor); setSel('fBand', v.fBand); setSel('fGroup', v.fGroup); setSel('fCheck', v.fCheck);
 }
 
 /* ---------- jump from Monitoring numbers to the matching list ---------- */
@@ -1463,11 +1664,11 @@ let jumpFilter = null;
 function jumpTo(kind, extra){
   const isVP = user.role==='vp';
   if(kind==='tutors'){ if(document.querySelector('#nav button[data-s=tutors]').style.display!=='none'){ showSection('tutors'); window.scrollTo(0,0); renderAll(); } return; }
-  ['q'].forEach(id => $(id).value=''); ['fTutor','fBand','fBlock','fGroup'].forEach(id => $(id).value='');
+  ['q'].forEach(id => $(id).value=''); ['fTutor','fBand','fBlock','fGroup','fCheck'].forEach(id => $(id).value='');
   if(!isPastoral(user.role)) $('fYear').value = '';
   $('fDue').checked = false; jumpFilter = null;
   curList = {new:'new', reward:'reward', due:'check', declining:'check', group: isVP?'all':'check', groupyear: isVP?'all':'check'}[kind] || 'new';
-  if(kind==='due') $('fDue').checked = true;
+  if(kind==='due') $('fDue').checked = false;
   if(kind==='declining') jumpFilter = 'declining';
   if(kind==='group' || kind==='groupyear'){
     const g = extra && extra.g || 'any';
@@ -1612,15 +1813,17 @@ function renderDetail(){
     <div class="goalbox">${f.activeGoal&&!f.rewardDue?'<small>Goal</small>':f.rewardDue?'':'<small>Next milestone</small>'}${goalTxt}</div>
     <div class="ladder">${ladder}</div>
     ${f.offTrack ? `<div class="msg bad" style="margin:0 0 8px">Declining: down ${f.drop.toFixed(1)} points since they were last seen on ${nice(f.last.date)} (was ${fmtPct(f.atGoal)}).</div>` : ''}
-    ${user.role!=='tutor' && (f.groups.length || user.role==='vp') ? `<div class="grpbox"><div class="grptitle">Groups</div><div class="grpchips">${groupList().map(g => {
+    ${user.role!=='tutor' && (f.groups.length || vpLike(user.role)) ? `<div class="grpbox"><div class="grptitle">Groups</div><div class="grpchips">${groupList().map(g => {
         const inG = f.groups.some(x => x.id===g.id), mm = isManualGroup(g) ? (state.members[g.id]||{})[s.id] : null;
-        if(isManualGroup(g)) return user.role==='vp' ? `<button class="gchip${inG?' on':''}" data-grp="${esc(g.id)}">${inG?'★ ':'☆ '}${esc(g.name)}${mm&&mm.start!=null?' <small>since '+nice(mm.date)+', '+fmtPct(mm.start)+' → '+fmtPct(f.p)+'</small>':''}</button>` : (inG ? `<span class="gchip on">★ ${esc(g.name)}</span>` : '');
+        if(isManualGroup(g)) return vpLike(user.role) ? `<button class="gchip${inG?' on':''}" data-grp="${esc(g.id)}">${inG?'★ ':'☆ '}${esc(g.name)}${mm&&mm.start!=null?' <small>since '+nice(mm.date)+', '+fmtPct(mm.start)+' → '+fmtPct(f.p)+'</small>':''}</button>` : (inG ? `<span class="gchip on">★ ${esc(g.name)}</span>` : '');
         return inG ? `<span class="gchip auto">${esc(g.name)} <small>automatic</small></span>` : '';
       }).join('')}</div></div>` : ''}
+    ${uBoxHTML(s)}
     <div class="minirow"><span>90%: <b>${n90}</b></span><span>Best by July: <b>${fmtPct(f.best)}</b></span>${f.streak.days>=1?`<span>In every day: <b>${String(f.streak.days).replace('.5','½')}${f.streak.capped?'+':''} days</b></span>`:''}</div>
 
     <div class="actions">
-      <button class="act ${todayLogs('checkin').length?'done':''}" data-act="checkin"><span class="dot">✓</span><span>Check-in completed<span class="sub">${subOf(ci,'Not yet')}</span></span></button>
+      <button class="act ${todayLogs('checkin').length?'done':''}" data-act="checkin"><span class="dot">✓</span><span>Check-in completed${f.ciMax?' <small>('+f.ciDone+' of '+f.ciMax+')</small>':''}<span class="sub">${subOf(ci,'Not yet')}${f.finished&&!f.offTrack?' · all check-ins done':''}</span></span></button>
+      ${f.list ? `<button class="act notin ${f.notinToday?'done':''}" data-act="notin"><span class="dot">✕</span><span>Not in today<span class="sub">${f.notinToday?'Marked today by '+esc(f.notinToday.staff)+': back on the list tomorrow':'Clears the card until tomorrow'}</span></span></button>` : ''}
       <button class="act ${gl&&gl.date===TODAY?'done':''}" data-act="goal" ${pickGoal==null?'disabled':''}><span class="dot">✓</span><span>Goal set${pickGoal?' · '+pickGoal+'%':''}<span class="sub">${gl? 'Current goal '+gl.m+'%' : 'No goal yet'}</span></span></button>
       ${showPick ? `<div class="goalpick">${goalOptions}</div>` : (pickGoal!=null ? `<button class="linkbtn" id="pickToggle">Choose a different milestone</button>` : '')}
       ${f.rewardDue ? `<div class="rewardbox"><div class="rbtitle">★ Reward due for ${f.activeGoal.m}%. Tap the reward you gave:</div><div class="rchips">${rewardsFor(f.activeGoal.m).map(r => `<button data-rw="${esc(r.name)}">${esc(r.name)}</button>`).join('')}</div></div>`
@@ -1632,7 +1835,7 @@ function renderDetail(){
     <details class="plain"><summary>Add a note</summary><textarea id="note" rows="2" placeholder="Saved with your next tap"></textarea></details>
     ${hasTimetable() ? `<details class="plain"><summary>${DAYNAME[dayIdx]}'s timetable</summary><table class="daytt">${tt}</table></details>` : ''}
     <details class="plain"><summary>History (${f.logs.length})</summary>
-    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%':l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':'<b>Reward given: '+l.m+'%'+(l.reward?' · '+esc(l.reward):'')+'</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
+    <ul class="hist">${f.logs.slice().reverse().map(l => `<li><span class="d">${nice(l.date)}</span><span>${l.type==='checkin'?'Check-in':l.type==='goal'?'Goal set: '+l.m+'%':l.type==='tutor'?'Tutor spoke to them about '+l.m+'%':l.type==='tutoraway'?'Tutor: not in this week':l.type==='notin'?'Not in today':l.type==='unotin'?'U codes: not in today':l.type==='ucheck'?'U-code check-in'+(l.m!=null?' ('+l.m+' U codes)':''):'<b>Reward given: '+l.m+'%'+(l.reward?' · '+esc(l.reward):'')+'</b>'} · ${esc(l.staff)}${l.note?'<br><span class="cellmeta">'+esc(l.note)+'</span>':''}</span></li>`).join('') || '<li class="cellmeta">Nothing logged yet.</li>'}
       <li><span class="d">${state.firstListed[s.id]?nice(state.firstListed[s.id]):''}</span><span class="cellmeta">First on the list</span></li></ul></details>
   `;
 }
@@ -1646,6 +1849,7 @@ function record(type, rewardName){
   if(type==='goal'){ if(pickGoal==null) return; entry.m = pickGoal; }
   if(type==='reward'){ if(!f.rewardDue) return; entry.m = f.activeGoal.m; entry.reward = rewardName || ''; }
   lastAction = addLog(entry);
+  if(type==='notin'){ if(f.notinToday) return; markNotIn(s.id); return; }
   const label = type==='checkin'?'Check-in logged': type==='goal'?'Goal of '+entry.m+'% set':(entry.reward||'Reward')+' given for '+entry.m+'%';
   toast(label+' for '+s.name.split(', ').reverse().join(' '));
   pickGoal = null; showPick = false;
@@ -1675,7 +1879,7 @@ function renderMonitor(){
   const all = students().map(s => ({s, f:info(s)}));
   const on = all.filter(x=>x.f.list);
   const goals = all.filter(x=>x.f.activeGoal);
-  const overdue = all.filter(x=>x.f.list==='check'&&x.f.checkDue);
+  const overdue = all.filter(x=>x.f.list==='check'&&x.f.outstanding);
   const rewardsAll = state.log.filter(l=>l.type==='reward');
   const met = on.filter(x=>x.f.ever).length;
   const avg = a => a.length ? a.reduce((t,x)=>t+x,0)/a.length : null;
@@ -1729,8 +1933,8 @@ function renderMonitor(){
 }
 
 function renderPastoralMonitor(all){
-  $('plPanel').style.display = user.role==='vp' ? '' : 'none';
-  if(user.role!=='vp') return;
+  $('plPanel').style.display = vpLike(user.role) ? '' : 'none';
+  if(!vpLike(user.role)) return;
   const years = [...new Set(all.map(x=>x.s.year||'No year'))].sort((a,b)=>yearNum(a)-yearNum(b));
   const since = schoolDaysBack(TODAY, 10).pop();
   const rows = years.map(y => {
@@ -1938,14 +2142,14 @@ function renderSettings(){
   renderGroupEditor();
   $('rwTable').innerHTML = `<thead><tr><th>Reward</th><th>From</th><th></th></tr></thead><tbody>` + (st.rewards||[]).map((r,i) => `<tr><td><input type="text" data-rwi="${i}" data-k="name" value="${esc(r.name)}"></td><td><select data-rwi="${i}" data-k="from">${MILESTONES.map(m=>`<option value="${m}"${+r.from===m?' selected':''}>${m}%</option>`).join('')}</select></td><td><button class="btn small danger" data-rwdel="${i}">✕</button></td></tr>`).join('') + '</tbody>';
   const years = [...new Set(allStudents().map(s=>s.year).filter(Boolean))].sort((a,b)=>yearNum(a)-yearNum(b));
-  $('staffTable').innerHTML = `<thead><tr><th>Name</th><th>School email</th><th>Role</th><th>Year</th><th></th></tr></thead><tbody>` + state.staff.map((p,i) => `<tr><td><input type="text" data-sti="${i}" data-k="name" value="${esc(p.name)}"></td><td><input type="text" data-sti="${i}" data-k="email" value="${esc(p.email)}"></td><td><select data-sti="${i}" data-k="role">${['vp','ll','pl'].map(r=>`<option value="${r}"${p.role===r?' selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></td><td><select data-sti="${i}" data-k="year" ${p.role==='vp'?'disabled':''}><option value=""></option>${years.map(y=>`<option${p.year===y?' selected':''}>${esc(y)}</option>`).join('')}</select></td><td><button class="btn small danger" data-stdel="${i}">✕</button></td></tr>`).join('') + '</tbody>';
+  $('staffTable').innerHTML = `<thead><tr><th>Name</th><th>School email</th><th>Role</th><th>Year</th><th></th></tr></thead><tbody>` + state.staff.map((p,i) => `<tr><td><input type="text" data-sti="${i}" data-k="name" value="${esc(p.name)}"></td><td><input type="text" data-sti="${i}" data-k="email" value="${esc(p.email)}"></td><td><select data-sti="${i}" data-k="role">${['vp','am','ll','pl'].map(r=>`<option value="${r}"${p.role===r?' selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select></td><td><select data-sti="${i}" data-k="year" ${vpLike(p.role)?'disabled':''}><option value=""></option>${years.map(y=>`<option${p.year===y?' selected':''}>${esc(y)}</option>`).join('')}</select></td><td><button class="btn small danger" data-stdel="${i}">✕</button></td></tr>`).join('') + '</tbody>';
   $('importPanel').style.display = API ? '' : 'none';
   const scN = API ? (state.staffCodesCount||0) : (state.staffCodes||[]).length;
   $('scStatus').textContent = scN ? `✓ ${scN} staff codes saved.` : (API ? '⚠ No staff codes yet, so every tutor picks their own form.' : 'The mock-up uses made-up tutor names until a list is uploaded.');
   $('ttStatus').innerHTML = TT_META ? `✓ Timetable uploaded ${niceY(TT_META.uploaded)}: ${TT_META.students} students, ${TT_META.classes} classes${TT_META.matched!=null?', '+TT_META.matched+' matched to the attendance list':''}.` : (API ? '⚠ No timetable uploaded yet, so locations are hidden.' : 'The mock-up is using a made-up timetable. Uploading real files replaces it.');
   if(API && !importCfgLoaded){ importCfgLoaded = true; loadImportCfg(); }
   $('mockPanel').style.display = API ? 'none' : '';
-  $('tPct').value = st.tPct; $('tDays').value = st.tDays; $('tNear').value = st.tNear; $('tutorDays').value = st.tutorDays; $('offDrop').value = st.offDrop ?? 1; $('ciDays').value = st.ciDays;
+  $('tPct').value = st.tPct; $('tDays').value = st.tDays; $('tNear').value = st.tNear; $('tutorDays').value = st.tutorDays; $('offDrop').value = st.offDrop ?? 1; $('ciDays').value = st.ciDays; $('ciMax').value = st.ciMax ?? 3; renderUSettings();
   $('lastDay').value = st.lastDay; $('dataDate').value = dataDate();
   $('useManual').checked = st.useManual; $('manualDays').value = st.manualDays;
   $('daysLeft').textContent = daysLeft();
@@ -2133,8 +2337,8 @@ function importText(text, date){
 // Template layout: Surname | Forename | Year | Reg Group | Days possible | Days present | DA (found by heading, any order).
 // Without headings: Student name | Year | Tutor | Days possible | Days present | DA.
 function importRows(lines, date){
-  // Tracker layout: StudentId | LastName | FirstName | YearGroup | RegGroup | SessionsPresent | SessionsPossible | FSM
-  // (headings found by name, any order; sessions are halved to give days; FSM is the DA flag)
+  // Tracker layout: StudentId | LastName | FirstName | YearGroup | RegGroup | SessionsPresent | SessionsPossible | PP | U
+  // (headings found by name, any order; sessions are halved to give days; PP/FSM is the DA flag; U is the running total of U codes)
   const rows = {}, problems = []; let zero = 0;
   const norm = v => String(v==null?'':v).toLowerCase().replace(/[\s_\-]+/g,'');
   const h = lines.findIndex(r => r.some(v => /surname|lastname|familyname|fullname|studentname/.test(norm(v))));
@@ -2142,7 +2346,7 @@ function importRows(lines, date){
   if(h >= 0){
     const head = lines[h].map(norm), find = re => head.findIndex(x => re.test(x));
     col = {id:find(/studentid|pupilid|^id$|adno|admission|^upn$/), sur:find(/surname|lastname|familyname/), fore:find(/forename|firstname|givenname/), name:find(/fullname|studentname/),
-      year:find(/^year/), tutor:find(/^reg|tutor|^form/), P:find(/possible/), A:find(/present|attended/), da:-1, daCols: head.map((x,i) => /^(da|fsm|fsm6|fsmever6|ever6|pp|pupilpremium|disadvantaged|lac|cla|pla|service|servicechild)$/.test(x) ? i : -1).filter(i => i >= 0), f:1};
+      year:find(/^year/), tutor:find(/^reg|tutor|^form/), P:find(/possible/), A:find(/present|attended/), u:find(/^(u|ucodes?|ucount|unauthorisedlate|lateafterregclosed)$/), da:-1, daCols: head.map((x,i) => /^(da|fsm|fsm6|fsmever6|ever6|pp|pupilpremium|disadvantaged|lac|cla|pla|service|servicechild)$/.test(x) ? i : -1).filter(i => i >= 0), f:1};
     lines = lines.slice(h+1);
     const body = lines.filter(r => r.some(x => String(x).trim()));
     if(col.P >= 0 && col.A >= 0 && body.filter(r => parseFloat(r[col.A]) > parseFloat(r[col.P])).length > body.length/2){ const x = col.P; col.P = col.A; col.A = x; }
@@ -2159,10 +2363,11 @@ function importRows(lines, date){
     const idNum = !API && !sid && /^\d+$/.test(name) ? +name : null;
     const id = sid ?? idNum ?? name;
     if(P===0) zero++;
-    rows[id] = {id, name: idNum!=null ? fakeName(idNum) : name, year:c[col.year]||'', tutor:c[col.tutor]||'', P, A, da: (col.daCols || (col.da>=0 ? [col.da] : [])).some(i => /^(y|yes|true|1|da|pp|fsm)$/i.test(c[i]||''))};
+    const u = col.u >= 0 && c[col.u] !== '' && !isNaN(parseFloat(c[col.u])) ? parseFloat(c[col.u]) : null;
+    rows[id] = {id, name: idNum!=null ? fakeName(idNum) : name, year:c[col.year]||'', tutor:c[col.tutor]||'', P, A, u, da: (col.daCols || (col.da>=0 ? [col.da] : [])).some(i => /^(y|yes|true|1|da|pp|fsm)$/i.test(c[i]||''))};
   });
   const n = Object.keys(rows).length;
-  if(!n){ setMsg('bad','No students found. Check the headings are StudentId, LastName, FirstName, YearGroup, RegGroup, SessionsPresent, SessionsPossible, FSM.'); return; }
+  if(!n){ setMsg('bad','No students found. Check the headings are StudentId, LastName, FirstName, YearGroup, RegGroup, SessionsPresent, SessionsPossible, PP and U.'); return; }
   if(API){ setMsg('info','Uploading…'); call('saveUpload', date, Object.values(rows)).then(() => { setMsg('ok', `✓ Uploaded ${n} students for ${niceY(date)}.`); bootFromServer(); }); return; }
   if(state.uploads.some(u=>u.date===date)) state.uploads = state.uploads.filter(u=>u.date!==date);
   state.uploads.push({date, rows}); state.uploads.sort((a,b)=>a.date<b.date?-1:1);
@@ -2177,11 +2382,11 @@ function setMsg(k,t){ ['upMsg','fuMsg'].forEach(id => { const m=$(id); if(m){ m.
 function renderAll(){
   invalidate();
   if(!user){ showLogin(); return; }
-  $('meLabel').innerHTML = user.viewing ? '<span class="viewing">Viewing as '+esc(ROLE_NAMES[user.role])+' · '+esc(user.role==='tutor'?user.tutor:user.year)+'</span>'
+  $('meLabel').innerHTML = user.viewing ? '<span class="viewing">Viewing as '+esc(ROLE_NAMES[user.role])+(user.role==='am'?'':' · '+esc(user.role==='tutor'?user.tutor:user.year))+'</span>'
     : '<b>'+esc(user.name)+'</b>'+(user.role==='tutor'?' · '+esc(user.tutor): isPastoral(user.role)?' · '+esc(user.year):'');
   renderViewSwitcher();
   $('signOut').style.display = API ? 'none' : '';
-  const allowed = user.role==='vp' ? ['lists','tutors','monitor','settings'] : user.role==='ll' ? ['lists','tutors','monitor'] : isPastoral(user.role) ? ['lists','monitor'] : ['tutor'];
+  const allowed = user.role==='am' ? ['lists','ucodes','tutors','monitor','settings'] : user.role==='vp' ? ['lists','tutors','monitor','settings'] : user.role==='ll' ? ['lists','tutors','monitor'] : isPastoral(user.role) ? ['lists','monitor'] : ['tutor'];
   document.querySelectorAll('#nav button').forEach(b => b.style.display = allowed.includes(b.dataset.s) ? '' : 'none');
   $('nav').classList.toggle('single', allowed.length===1);
   const curSec = document.querySelector('main section.on');
@@ -2193,6 +2398,7 @@ function renderAll(){
   renderLists(); renderDetail();
   if($('s-monitor').classList.contains('on')) renderMonitor();
   if($('s-tutors').classList.contains('on')) renderTutorsTab();
+  if($('s-ucodes').classList.contains('on')) renderUTab();
   if($('s-settings').classList.contains('on')) renderSettings();
 }
 function showSection(id){
@@ -2204,10 +2410,13 @@ $('nav').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   showSection(b.dataset.s); closeStudent(); window.scrollTo(0,0); renderAll(); };
 $('seg').onclick = e => { const b = e.target.closest('button'); if(!b) return; curList = b.dataset.l; jumpFilter = null; cardLimit = 50; vpLimit = 100;
   document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b)); renderLists(); };
-['q','fYear','fTutor','fBand','fBlock','fGroup','fSort','fDue'].forEach(id => $(id).addEventListener('input', () => { cardLimit = 50; vpLimit = 100; renderLists(); }));
+['q','fYear','fTutor','fBand','fBlock','fGroup','fSort','fDue','fCheck'].forEach(id => $(id).addEventListener('input', () => { cardLimit = 50; vpLimit = 100; renderLists(); }));
 let sortTouched = false; $('fSort').addEventListener('input', () => sortTouched = true);
 $('fBtn').onclick = () => { const b = $('filterBox'); b.hidden = !b.hidden; $('fBtn').classList.toggle('on', !b.hidden); };
-$('cards').onclick = e => { if(Date.now()-swipedAt < 450) return; if(e.target.id==='moreCards'){ cardLimit += 50; renderLists(); return; } const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id); };
+$('cards').onclick = e => { if(Date.now()-swipedAt < 450) return;
+  const ni = e.target.closest('[data-notin]'); if(ni){ e.preventDefault(); markNotIn(ni.dataset.notin); return; }
+  if(e.target.closest('.donesec > summary')){ setTimeout(() => { doneOpen = !!document.querySelector('.donesec[open]'); }, 0); return; }
+  if(e.target.id==='moreCards'){ cardLimit += 50; renderLists(); return; } const c = e.target.closest('.card'); if(c) openStudent(c.dataset.id); };
 $('mOver').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
 $('tgRows').onclick = e => { const r = e.target.closest('tr[data-id]'); if(r) openStudent(r.dataset.id); };
 $('shade').onclick = closeStudent; $('dClose').onclick = closeStudent;
@@ -2274,7 +2483,7 @@ $('grpAdd').onclick = () => { state.settings.groups.push({id:'g'+uid(), name:'Ne
 $('rwTable').onchange = e => { const el = e.target.closest('[data-rwi]'); if(!el) return; const r = state.settings.rewards[+el.dataset.rwi]; r[el.dataset.k] = el.dataset.k==='from' ? +el.value : el.value.trim(); saveSettings(); };
 $('rwTable').onclick = e => { const b = e.target.closest('[data-rwdel]'); if(!b) return; state.settings.rewards.splice(+b.dataset.rwdel,1); saveSettings(); renderSettings(); };
 $('rwAdd').onclick = () => { (state.settings.rewards ||= []).push({name:'New reward', from:10}); saveSettings(); renderSettings(); };
-$('staffTable').onchange = e => { const el = e.target.closest('[data-sti]'); if(!el) return; const p = state.staff[+el.dataset.sti]; p[el.dataset.k] = el.value.trim(); if(p.role==='vp') p.year=''; saveStaff(); $('staffMsg').textContent = '✓ Saved'; renderSettings(); };
+$('staffTable').onchange = e => { const el = e.target.closest('[data-sti]'); if(!el) return; const p = state.staff[+el.dataset.sti]; p[el.dataset.k] = el.value.trim(); if(vpLike(p.role)) p.year=''; saveStaff(); $('staffMsg').textContent = '✓ Saved'; renderSettings(); };
 $('staffTable').onclick = e => { const b = e.target.closest('[data-stdel]'); if(!b) return; state.staff.splice(+b.dataset.stdel,1); saveStaff(); renderSettings(); };
 $('staffAdd').onclick = () => { state.staff.push({name:'', email:'', role:'pl', year:''}); renderSettings(); };
 let importCfgLoaded = false;
@@ -2294,9 +2503,9 @@ $('impTest').onclick = () => {
   impMsg('info','Connecting to Synergy…');
   const save = $('impPass').value || $('impUrl').value.trim() ? call('saveImportConfig', {url:$('impUrl').value.trim(), user:$('impUser').value.trim(), pass:$('impPass').value}).then(showImportCfg) : Promise.resolve();
   save.then(() => call('testImport')).then(r => {
-    const c = r.columns, miss = Object.entries(c).filter(([k,v]) => v==='not found' && k!=='da' && k!=='id').map(([k])=>k);
+    const c = r.columns, miss = Object.entries(c).filter(([k,v]) => v==='not found' && k!=='da' && k!=='id' && k!=='u').map(([k])=>k);
     impMsg(r.students && !miss.length ? 'ok' : 'warn', `${r.students && !miss.length ? '✓ Connected.' : '⚠ Connected, but check this.'} Synergy sent ${r.rows} rows (${esc(r.type)}), and ${r.students} students can be read.<br>
-      ID: <b>${esc(c.id)}</b> · Name: <b>${esc(c.name)}</b> · Year: <b>${esc(c.year)}</b> · Form: <b>${esc(c.form)}</b> · Present: <b>${esc(c.present)}</b> · Possible: <b>${esc(c.possible)}</b> · DA: <b>${esc(c.da)}</b>${r.sessions ? '<br>Figures are sessions, so they\'ll be halved to give days.' : ''}${miss.length ? '<br>Couldn\'t find: '+miss.join(', ')+'.' : ''}`);
+      ID: <b>${esc(c.id)}</b> · Name: <b>${esc(c.name)}</b> · Year: <b>${esc(c.year)}</b> · Form: <b>${esc(c.form)}</b> · Present: <b>${esc(c.present)}</b> · Possible: <b>${esc(c.possible)}</b> · DA: <b>${esc(c.da)}</b> · U codes: <b>${esc(c.u||'not found')}</b>${r.sessions ? '<br>Figures are sessions, so they\'ll be halved to give days.' : ''}${miss.length ? '<br>Couldn\'t find: '+miss.join(', ')+'.' : ''}`);
   }).catch(e => impMsg('bad','⚠ '+esc(e.message||e)));
 };
 $('impDaily').onchange = e => { const on = e.target.checked; call('setDailyImport', on).then(c => { showImportCfg(c); impMsg('ok', on ? '✓ The app will import from Synergy every school day at about 7am.' : 'Automatic import turned off.'); }).catch(() => { e.target.checked = !on; }); };
@@ -2304,7 +2513,8 @@ $('importNow').onclick = () => { impMsg('info','Importing from Synergy…'); cal
 document.querySelectorAll('input[name=tmode]').forEach(r => r.onchange = () => setSetting('tmode', r.value));
 $('tPct').onchange = e => setSetting('tPct', Math.min(100,Math.max(1,+e.target.value||90)));
 $('tDays').onchange = e => setSetting('tDays', Math.max(0,+e.target.value||0));
-$('ciDays').onchange = e => setSetting('ciDays', Math.max(1,Math.round(+e.target.value||10)));
+$('ciDays').onchange = e => setSetting('ciDays', Math.max(1,Math.round(+e.target.value||3)));
+$('ciMax').onchange = e => setSetting('ciMax', Math.max(0,Math.round(+e.target.value||0)));
 $('lastDay').onchange = e => { if(e.target.value) setSetting('lastDay', e.target.value); };
 $('useManual').onchange = e => setSetting('useManual', e.target.checked);
 $('manualDays').onchange = e => setSetting('manualDays', Math.max(0,+e.target.value||0));
@@ -2399,6 +2609,9 @@ function showLogin(){
   const vp = state.staff.find(p => p.role==='vp');
   document.querySelector('.rolebtn.vp').dataset.email = vp ? vp.email : '';
   document.querySelector('.rolebtn.vp').innerHTML = (vp ? esc(vp.name)+'<small>Vice Principal · all years · settings</small>' : 'Vice Principal<small>All years · settings</small>');
+  const am = state.staff.find(p => p.role==='am');
+  document.querySelector('.rolebtn.am').dataset.email = am ? am.email : '';
+  document.querySelector('.rolebtn.am').innerHTML = (am ? esc(am.name)+'<small>Attendance Manager · all years · U codes</small>' : 'Attendance Manager<small>All years · U codes</small>');
   $('tutorYear').innerHTML = years.map(y=>`<option>${esc(y)}</option>`).join('');
   fillTutors();
   $('login').classList.add('on');
@@ -2411,12 +2624,12 @@ function fillTutors(){
   if(withN) $('tutorSel').value = withN;
 }
 $('tutorYear').onchange = fillTutors;
-function signIn(u){ user = u; vpSel.clear(); if(u.role==='vp'){ curList = 'all'; } $('toast').classList.remove('on'); try{ localStorage.setItem(KEY+'.user', JSON.stringify(u)); }catch(e){} $('login').classList.remove('on'); closeStudent(); if(u.role!=='vp') curList='new'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList)); $('fYear').value=''; $('fTutor').value=''; window.scrollTo(0,0); renderAll(); }
+function signIn(u){ user = u; vpSel.clear(); if(vpLike(u.role)){ curList = 'all'; } $('toast').classList.remove('on'); try{ localStorage.setItem(KEY+'.user', JSON.stringify(u)); }catch(e){} $('login').classList.remove('on'); closeStudent(); if(!vpLike(u.role)) curList='new'; document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x.dataset.l===curList)); $('fYear').value=''; $('fTutor').value=''; window.scrollTo(0,0); renderAll(); }
 $('login').onclick = e => {
   const b = e.target.closest('.rolebtn'); if(!b) return;
   const p = state.staff.find(x => x.email===b.dataset.email);
   if(p) signIn({role:p.role, year:p.year, name:p.name, email:p.email});
-  else signIn({role:'vp', name:'Vice Principal'});
+  else signIn({role: b.dataset.role==='am' ? 'am' : 'vp', name: b.dataset.role==='am' ? 'Attendance Manager' : 'Vice Principal'});
 };
 $('tutorGo').onclick = () => { const g = $('tutorSel').value; if(!g) return;
   if(API){ $('tutorGo').disabled = true; call('setMyForm', g).then(() => { $('login').classList.remove('on'); bootFromServer(); }); return; }
